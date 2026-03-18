@@ -34,59 +34,93 @@
     overflow-x: hidden;
   }
 
+  /* ── Ambient sparkle canvas ── */
+  #sparkle-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .sparkle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: sparkle-drift linear forwards;
+    opacity: 0;
+  }
+  @keyframes sparkle-drift {
+    0%   { opacity: 0;   transform: translateY(0) scale(0.5); }
+    15%  { opacity: 0.7; transform: translateY(-15px) scale(1); }
+    85%  { opacity: 0.4; }
+    100% { opacity: 0;   transform: translateY(-120px) scale(0.3); }
+  }
+
   /* ── Layout ── */
   #app {
     display: grid;
-    grid-template-columns: 280px 1fr 280px;
+    grid-template-columns: 285px 1fr 285px;
     grid-template-rows: auto 1fr;
     min-height: 100vh;
     max-width: 1400px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
   }
 
+  /* ── Header ── */
   #header {
     grid-column: 1 / -1;
-    background: var(--surface);
+    background: linear-gradient(90deg, #0d1117, #161b22, #0d1117);
     border-bottom: 1px solid var(--border);
     padding: 10px 20px;
     display: flex;
     align-items: center;
     gap: 12px;
+    position: relative;
+    overflow: hidden;
   }
-
+  #header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.6;
+  }
+  #header .header-icon { font-size: 2rem; filter: drop-shadow(0 0 8px rgba(245,166,35,0.7)); }
   #header h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: 1px;
-    text-shadow: 0 0 20px rgba(245,166,35,0.4);
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), #fff5cc, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
   }
-
-  #header .subtitle {
-    color: var(--muted);
-    font-size: 0.8rem;
-  }
-
+  #header .subtitle { color: var(--muted); font-size: 0.75rem; letter-spacing: 1px; }
+  #header .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  #header .save-indicator { font-size: 0.65rem; color: var(--muted); }
   #header .reset-btn {
-    margin-left: auto;
     background: transparent;
     border: 1px solid var(--red);
     color: var(--red);
-    padding: 4px 12px;
+    padding: 5px 14px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.75rem;
     transition: all 0.2s;
   }
-  #header .reset-btn:hover { background: var(--red); color: #fff; }
+  #header .reset-btn:hover { background: var(--red); color: #fff; box-shadow: 0 0 12px rgba(248,81,73,0.4); }
 
+  /* ── Panels ── */
   #left-panel, #right-panel {
     background: var(--surface);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    max-height: calc(100vh - 53px);
+    max-height: calc(100vh - 57px);
   }
   #right-panel { border-right: none; border-left: 1px solid var(--border); }
 
@@ -98,20 +132,65 @@
     gap: 16px;
     position: relative;
     overflow: hidden;
+    background: radial-gradient(ellipse at 50% 60%, rgba(245,166,35,0.03) 0%, transparent 70%);
   }
 
-  /* ── Panel headers ── */
+  /* ── Panel title ── */
   .panel-title {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: var(--muted);
-    padding: 12px 14px 8px;
+    color: var(--accent);
+    padding: 12px 14px 10px;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
-  /* ── Stats strip ── */
+  /* ── Level badge ── */
+  #level-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 18px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    overflow: hidden;
+  }
+  #level-badge::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent), #c8800a);
+  }
+  .lvl-circle {
+    background: linear-gradient(135deg, var(--accent), #c8800a);
+    color: #000;
+    font-weight: 900;
+    font-size: 1.3rem;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 20px rgba(245,166,35,0.5);
+    flex-shrink: 0;
+    animation: badge-pulse 3s ease-in-out infinite;
+  }
+  @keyframes badge-pulse {
+    0%, 100% { box-shadow: 0 0 16px rgba(245,166,35,0.4); }
+    50%       { box-shadow: 0 0 28px rgba(245,166,35,0.8); }
+  }
+  .lvl-info { flex: 1; }
+  .lvl-title { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+  .lvl-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+  /* ── Stat boxes ── */
   #stats-strip {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -119,35 +198,41 @@
     width: 100%;
     max-width: 420px;
   }
-
   .stat-box {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    text-align: center;
-  }
-  .stat-box .label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-  .stat-box .value { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-top: 2px; }
-
-  /* ── Level badge ── */
-  #level-badge {
+    border-radius: 10px;
+    padding: 10px 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    transition: border-color 0.3s;
   }
-  #level-badge .lvl-num {
-    background: linear-gradient(135deg, var(--accent), #c8800a);
-    color: #000;
-    font-weight: 900;
-    font-size: 1.2rem;
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 0 16px rgba(245,166,35,0.5);
+  .stat-box:nth-child(1) { border-top: 2px solid #f5a623; }
+  .stat-box:nth-child(2) { border-top: 2px solid #5dc8f5; }
+  .stat-box:nth-child(3) { border-top: 2px solid #57e389; }
+  .stat-box:nth-child(4) { border-top: 2px solid #c061cb; }
+  .stat-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .stat-text .label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-text .value { font-size: 1.05rem; font-weight: 800; margin-top: 1px; }
+  .stat-box:nth-child(1) .value { color: #f5a623; }
+  .stat-box:nth-child(2) .value { color: #5dc8f5; }
+  .stat-box:nth-child(3) .value { color: #57e389; }
+  .stat-box:nth-child(4) .value { color: #c061cb; }
+
+  /* ── Multiplier ── */
+  #multiplier-display {
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
-  #level-badge .lvl-info { font-size: 0.8rem; color: var(--muted); }
-  #level-badge .lvl-info strong { color: var(--text); }
+  #multiplier-display span { color: var(--uncommon); font-weight: 800; }
 
   /* ── XP bar ── */
   #xp-container {
@@ -159,134 +244,199 @@
     justify-content: space-between;
     font-size: 0.7rem;
     color: var(--muted);
-    margin-bottom: 4px;
+    margin-bottom: 5px;
+    align-items: center;
   }
+  #xp-label .xp-icon { font-size: 0.85rem; }
   #xp-bar-bg {
-    height: 10px;
+    height: 12px;
     background: var(--surface2);
     border-radius: 999px;
     border: 1px solid var(--border);
     overflow: hidden;
+    position: relative;
   }
   #xp-bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #f5a623, #e8c96a);
+    background: linear-gradient(90deg, #d4860f, #f5a623, #ffe580);
     border-radius: 999px;
-    transition: width 0.3s ease;
+    transition: width 0.35s ease;
     width: 0%;
+    position: relative;
+  }
+  #xp-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -60%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    animation: shimmer 2.5s ease infinite;
+  }
+  @keyframes shimmer {
+    0%   { left: -60%; }
+    100% { left: 110%; }
   }
 
   /* ── DIG button ── */
+  #dig-wrap {
+    position: relative;
+    width: 160px; height: 160px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dig-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: conic-gradient(from 0deg, var(--accent), transparent, var(--accent));
+    animation: ring-spin 4s linear infinite;
+    opacity: 0.4;
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
+  }
+  @keyframes ring-spin { to { transform: rotate(360deg); } }
+
   #dig-btn {
-    width: 140px; height: 140px;
+    width: 148px; height: 148px;
     border-radius: 50%;
     border: 3px solid var(--accent);
-    background: radial-gradient(circle at 35% 35%, #2a2010, #0d1117);
+    background: radial-gradient(circle at 35% 30%, #2f2208, #0d1117);
     color: var(--accent);
     font-size: 1rem;
     font-weight: 800;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     cursor: pointer;
     position: relative;
     transition: transform 0.1s, box-shadow 0.2s;
-    box-shadow: 0 0 30px rgba(245,166,35,0.2), inset 0 0 20px rgba(245,166,35,0.05);
+    box-shadow:
+      0 0 30px rgba(245,166,35,0.25),
+      0 0 60px rgba(245,166,35,0.08),
+      inset 0 0 30px rgba(245,166,35,0.06);
     user-select: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
   #dig-btn:hover {
-    box-shadow: 0 0 40px rgba(245,166,35,0.4), inset 0 0 20px rgba(245,166,35,0.1);
-    transform: scale(1.03);
+    box-shadow:
+      0 0 50px rgba(245,166,35,0.5),
+      0 0 100px rgba(245,166,35,0.15),
+      inset 0 0 30px rgba(245,166,35,0.12);
+    transform: scale(1.04);
   }
-  #dig-btn:active { transform: scale(0.96); }
-  #dig-btn .dig-icon { font-size: 2.2rem; display: block; margin-bottom: 4px; }
+  #dig-btn:active { transform: scale(0.94); }
+  .dig-icon { font-size: 2.6rem; line-height: 1; filter: drop-shadow(0 0 8px rgba(245,166,35,0.8)); }
+  .dig-label { font-size: 0.85rem; font-weight: 900; letter-spacing: 4px; }
 
   @keyframes dig-shake {
     0%   { transform: rotate(0deg) scale(1); }
-    15%  { transform: rotate(-8deg) scale(0.96); }
-    30%  { transform: rotate(8deg) scale(0.98); }
-    45%  { transform: rotate(-5deg) scale(0.97); }
-    60%  { transform: rotate(5deg) scale(0.99); }
-    75%  { transform: rotate(-2deg) scale(1); }
+    12%  { transform: rotate(-10deg) scale(0.95); }
+    28%  { transform: rotate(9deg) scale(0.97); }
+    44%  { transform: rotate(-7deg) scale(0.96); }
+    60%  { transform: rotate(6deg) scale(0.98); }
+    76%  { transform: rotate(-2deg) scale(1); }
     100% { transform: rotate(0deg) scale(1); }
   }
   #dig-btn.shaking { animation: dig-shake 0.4s ease; }
 
-  /* ── Floating +coins ── */
+  #dig-sub { font-size: 0.68rem; color: var(--muted); }
+
+  /* ── Float text ── */
   .float-text {
     position: fixed;
     pointer-events: none;
-    font-weight: 700;
-    color: var(--accent);
+    font-weight: 800;
     font-size: 1rem;
-    text-shadow: 0 0 8px rgba(245,166,35,0.8);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
     z-index: 9999;
-    animation: float-up 1.2s ease forwards;
+    animation: float-up 1.3s ease forwards;
+    white-space: nowrap;
   }
   @keyframes float-up {
-    0%   { opacity: 1; transform: translateY(0); }
-    100% { opacity: 0; transform: translateY(-70px); }
+    0%   { opacity: 1;   transform: translateY(0)     scale(1); }
+    20%  { opacity: 1;   transform: translateY(-10px) scale(1.15); }
+    100% { opacity: 0;   transform: translateY(-80px) scale(0.8); }
   }
 
-  /* ── Treasure popup (Epic+) ── */
-  #treasure-popup {
+  /* ── Particles ── */
+  .particle {
     position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    pointer-events: none;
+    z-index: 9000;
+    animation: particle-anim var(--dur,0.9s) ease forwards;
+  }
+  @keyframes particle-anim {
+    0%   { opacity: 1; transform: translate(0,0) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translate(var(--tx),var(--ty)) scale(0) rotate(var(--rot,180deg)); }
+  }
+
+  /* ── Treasure popup ── */
+  #treasure-popup {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
     z-index: 10000;
-    background: rgba(0,0,0,0.6);
-    animation: popup-bg 2.2s ease forwards;
+    background: rgba(0,0,0,0.65);
+    animation: popup-bg 2.4s ease forwards;
     pointer-events: none;
   }
   .popup-box {
-    background: var(--surface);
+    background: linear-gradient(135deg, #1c2230, #161b22);
     border: 2px solid var(--epic);
-    border-radius: 16px;
-    padding: 32px 48px;
+    border-radius: 20px;
+    padding: 36px 56px;
     text-align: center;
-    animation: treasure-pop 2.2s ease forwards;
+    animation: treasure-pop 2.4s ease forwards;
+    position: relative;
+    overflow: hidden;
+  }
+  .popup-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(192,97,203,0.15), transparent 60%);
   }
   .popup-box.legendary { border-color: var(--legendary); }
-  .popup-box .pop-rarity { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-  .popup-box .pop-icon { font-size: 3.5rem; }
-  .popup-box .pop-name { font-size: 1.5rem; font-weight: 800; margin-top: 8px; }
-  .popup-box .pop-rewards { color: var(--muted); margin-top: 6px; font-size: 0.85rem; }
+  .popup-box.legendary::before { background: radial-gradient(circle at 50% 0%, rgba(245,166,35,0.2), transparent 60%); }
+  .pop-rarity { font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+  .pop-icon { font-size: 4.5rem; line-height: 1; filter: drop-shadow(0 0 20px currentColor); }
+  .pop-name { font-size: 1.6rem; font-weight: 900; margin-top: 10px; }
+  .pop-rewards { color: var(--muted); margin-top: 8px; font-size: 0.9rem; }
   @keyframes treasure-pop {
-    0%   { opacity: 0; transform: scale(0.5) rotate(-5deg); }
-    15%  { opacity: 1; transform: scale(1.15) rotate(2deg); }
-    25%  { transform: scale(0.95) rotate(0deg); }
-    35%  { transform: scale(1.05); }
-    45%  { transform: scale(1); }
-    75%  { opacity: 1; }
-    100% { opacity: 0; transform: scale(0.9) translateY(-20px); }
+    0%   { opacity: 0; transform: scale(0.4) rotate(-8deg); }
+    18%  { opacity: 1; transform: scale(1.18) rotate(3deg); }
+    28%  { transform: scale(0.94) rotate(-1deg); }
+    38%  { transform: scale(1.04); }
+    50%  { transform: scale(1); }
+    72%  { opacity: 1; }
+    100% { opacity: 0; transform: scale(0.85) translateY(-30px); }
   }
-  @keyframes popup-bg {
-    0%,70% { opacity: 1; }
-    100%   { opacity: 0; }
-  }
+  @keyframes popup-bg { 0%,70%{ opacity:1; } 100%{ opacity:0; } }
 
   /* ── Level-up banner ── */
   #levelup-banner {
     position: fixed;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10001;
-    background: linear-gradient(135deg, var(--surface), var(--surface2));
+    background: linear-gradient(135deg, #1a1f0d, #1c2230);
     border: 2px solid var(--accent);
-    border-radius: 16px;
-    padding: 24px 56px;
+    border-radius: 20px;
+    padding: 28px 64px;
     text-align: center;
     pointer-events: none;
-    animation: banner-anim 2s ease forwards;
+    animation: banner-anim 2.2s ease forwards;
+    box-shadow: 0 0 60px rgba(245,166,35,0.3);
   }
-  #levelup-banner h2 { color: var(--accent); font-size: 2rem; text-shadow: 0 0 20px rgba(245,166,35,0.6); }
-  #levelup-banner p { color: var(--muted); margin-top: 4px; }
+  #levelup-banner .banner-icon { font-size: 2.5rem; }
+  #levelup-banner h2 { color: var(--accent); font-size: 2.2rem; font-weight: 900; text-shadow: 0 0 30px rgba(245,166,35,0.7); margin-top: 4px; }
+  #levelup-banner p { color: var(--muted); margin-top: 6px; font-size: 0.9rem; }
   @keyframes banner-anim {
-    0%   { opacity: 0; transform: translate(-50%, -60%); }
-    15%  { opacity: 1; transform: translate(-50%, -50%); }
+    0%   { opacity: 0; transform: translate(-50%, -65%) scale(0.8); }
+    15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+    25%  { transform: translate(-50%, -50%) scale(1); }
     70%  { opacity: 1; transform: translate(-50%, -50%); }
-    100% { opacity: 0; transform: translate(-50%, -45%); }
+    100% { opacity: 0; transform: translate(-50%, -42%) scale(0.9); }
   }
 
   /* ── Shop ── */
@@ -301,12 +451,16 @@
     color: var(--muted);
     padding: 10px 4px;
     cursor: pointer;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 1px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
     transition: all 0.2s;
     border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
   }
   .shop-tab:hover { color: var(--text); }
   .shop-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
@@ -316,24 +470,45 @@
   .shop-item {
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 10px 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.18s;
     position: relative;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
   }
-  .shop-item:hover:not(.locked):not(.cant-afford) { border-color: var(--accent); background: #1f2b3a; }
-  .shop-item.locked { opacity: 0.4; cursor: not-allowed; }
-  .shop-item.cant-afford { opacity: 0.6; cursor: not-allowed; }
-  .shop-item.owned-shovel { border-color: var(--green); background: rgba(63,185,80,0.08); }
+  .shop-item:hover:not(.locked):not(.cant-afford) {
+    border-color: var(--accent);
+    background: #1d2535;
+    transform: translateX(2px);
+    box-shadow: -3px 0 0 var(--accent);
+  }
+  .shop-item.locked { opacity: 0.38; cursor: not-allowed; }
+  .shop-item.cant-afford { opacity: 0.55; cursor: not-allowed; }
+  .shop-item.owned-active {
+    border-color: var(--green);
+    background: rgba(63,185,80,0.07);
+    box-shadow: -3px 0 0 var(--green);
+  }
 
-  .shop-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-  .shop-item-name { font-weight: 700; font-size: 0.85rem; }
-  .shop-item-cost { font-size: 0.75rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
-  .shop-item-desc { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
-  .shop-item-count { position: absolute; top: 6px; right: 6px; background: var(--accent); color: #000; border-radius: 999px; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; }
-  .shop-item .lock-icon { font-size: 0.65rem; color: var(--muted); }
+  .shop-item-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+  .shop-item-body { flex: 1; min-width: 0; }
+  .shop-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+  .shop-item-name { font-weight: 700; font-size: 0.83rem; }
+  .shop-item-cost { font-size: 0.73rem; color: var(--accent); font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+  .shop-item-desc { font-size: 0.68rem; color: var(--muted); margin-top: 3px; }
   .shop-item.cant-afford .shop-item-cost { color: var(--red); }
+  .shop-item-count {
+    position: absolute; top: 7px; right: 7px;
+    background: linear-gradient(135deg, var(--accent), #c8800a);
+    color: #000;
+    border-radius: 999px;
+    font-size: 0.6rem; font-weight: 900;
+    padding: 1px 7px;
+  }
+  .shop-item.owned-active .shop-item-cost { color: var(--green); }
 
   /* ── Recent Finds ── */
   #log-list {
@@ -341,43 +516,40 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
-    max-height: 260px;
+    max-height: 270px;
     overflow-y: auto;
   }
   .log-entry {
-    font-size: 0.72rem;
-    padding: 4px 8px;
+    font-size: 0.71rem;
+    padding: 5px 8px;
     background: var(--surface2);
-    border-radius: 4px;
+    border-radius: 5px;
     border-left: 3px solid var(--border);
     display: flex;
     justify-content: space-between;
-    animation: log-in 0.3s ease;
+    align-items: center;
+    animation: log-in 0.25s ease;
   }
   @keyframes log-in {
-    from { opacity: 0; transform: translateX(-8px); }
+    from { opacity: 0; transform: translateX(-10px); }
     to   { opacity: 1; transform: translateX(0); }
   }
   .log-entry.common    { border-left-color: var(--common); }
   .log-entry.uncommon  { border-left-color: var(--uncommon); }
   .log-entry.rare      { border-left-color: var(--rare); }
-  .log-entry.epic      { border-left-color: var(--epic); }
-  .log-entry.legendary { border-left-color: var(--legendary); }
+  .log-entry.epic      { border-left-color: var(--epic); background: rgba(192,97,203,0.06); }
+  .log-entry.legendary { border-left-color: var(--legendary); background: rgba(245,166,35,0.07); }
+  .log-rewards { color: var(--muted); font-size: 0.62rem; white-space: nowrap; }
 
-  .log-name { }
-  .log-rewards { color: var(--muted); font-size: 0.65rem; }
-
-  /* ── Collection grid ── */
+  /* ── Collection ── */
   .section-title {
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 10px 14px 6px;
+    font-size: 0.63rem; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent);
+    padding: 10px 14px 7px;
     border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
   }
-
   #collection-grid {
     padding: 8px;
     display: grid;
@@ -387,147 +559,132 @@
   .coll-item {
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 4px;
+    border-radius: 8px;
+    padding: 7px 4px 5px;
     text-align: center;
     position: relative;
+    transition: all 0.2s;
+    cursor: default;
   }
-  .coll-item .coll-icon { font-size: 1.3rem; }
-  .coll-item .coll-name { font-size: 0.55rem; color: var(--muted); margin-top: 2px; }
-  .coll-item .coll-count {
-    position: absolute;
-    top: 2px; right: 3px;
-    font-size: 0.55rem;
-    font-weight: 700;
-    color: var(--text);
+  .coll-item:not(.undiscovered):hover {
+    border-color: var(--accent);
+    transform: scale(1.06);
   }
-  .coll-item.undiscovered { opacity: 0.2; filter: grayscale(1); }
+  .coll-icon { font-size: 1.4rem; line-height: 1; }
+  .coll-name { font-size: 0.52rem; color: var(--muted); margin-top: 3px; }
+  .coll-count {
+    position: absolute; top: 2px; right: 3px;
+    font-size: 0.52rem; font-weight: 800; color: var(--text);
+  }
+  .coll-item.undiscovered { opacity: 0.18; filter: grayscale(1) blur(1px); }
 
   /* ── Scrollbars ── */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  /* ── Particles ── */
-  .particle {
-    position: fixed;
-    pointer-events: none;
-    border-radius: 50%;
-    z-index: 9000;
-    animation: particle-anim 1s ease forwards;
-  }
-  @keyframes particle-anim {
-    0%   { opacity: 1; transform: translate(0, 0) scale(1); }
-    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
-  }
-
-  /* ── Responsive ── */
-  @media (max-width: 900px) {
-    #app {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto;
-    }
-    #left-panel, #right-panel { max-height: none; border: none; border-bottom: 1px solid var(--border); }
-    #right-panel { border-left: none; }
-    #center-panel { padding: 16px; }
-  }
-
-  /* ── Misc ── */
-  .shovel-indicator {
-    font-size: 0.65rem;
-    color: var(--green);
-    font-weight: 600;
-    margin-top: 2px;
-  }
-  #multiplier-display {
-    font-size: 0.75rem;
-    color: var(--muted);
-    text-align: center;
-  }
-  #multiplier-display span { color: var(--uncommon); font-weight: 700; }
-
+  /* ── Offline notice ── */
   #offline-notice {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
     background: var(--surface);
     border: 1px solid var(--accent);
-    border-radius: 10px;
-    padding: 12px 24px;
-    font-size: 0.85rem;
-    z-index: 9999;
+    border-radius: 12px; padding: 12px 24px;
+    font-size: 0.85rem; z-index: 9999;
     animation: slide-up 0.4s ease, fade-out 0.4s ease 3.6s forwards;
     pointer-events: none;
+    box-shadow: 0 0 20px rgba(245,166,35,0.3);
   }
   @keyframes slide-up {
     from { opacity: 0; transform: translate(-50%, 20px); }
     to   { opacity: 1; transform: translate(-50%, 0); }
   }
-  @keyframes fade-out {
-    to { opacity: 0; }
-  }
+  @keyframes fade-out { to { opacity: 0; } }
 
-  #digs-display { font-size: 0.7rem; color: var(--muted); }
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    #app { grid-template-columns: 1fr; }
+    #left-panel, #right-panel { max-height: none; border: none; border-bottom: 1px solid var(--border); }
+    #right-panel { border-left: none; }
+    #center-panel { padding: 16px; }
+  }
 </style>
 </head>
 <body>
+
+<div id="sparkle-layer"></div>
+
 <div id="app">
 
   <header id="header">
-    <div>⛏️</div>
+    <div class="header-icon">⛏️</div>
     <div>
       <h1>TREASURE HUNTER</h1>
-      <div class="subtitle">Idle treasure digging adventure</div>
+      <div class="subtitle">⚡ Idle treasure digging adventure</div>
     </div>
-    <button class="reset-btn" onclick="resetGame()">Reset</button>
+    <div class="header-right">
+      <span class="save-indicator" id="save-indicator">💾 Auto-saves</span>
+      <button class="reset-btn" onclick="resetGame()">🗑 Reset</button>
+    </div>
   </header>
 
   <!-- LEFT: Shop -->
   <aside id="left-panel">
-    <div class="panel-title">⚒ Shop</div>
+    <div class="panel-title">🛒 Shop</div>
     <div class="shop-tabs">
-      <button class="shop-tab active" onclick="switchTab('shovels',this)">Shovels</button>
-      <button class="shop-tab" onclick="switchTab('miners',this)">Miners</button>
-      <button class="shop-tab" onclick="switchTab('accessories',this)">Accessories</button>
+      <button class="shop-tab active" onclick="switchTab('shovels',this)">⛏️ Shovels</button>
+      <button class="shop-tab" onclick="switchTab('miners',this)">👷 Miners</button>
+      <button class="shop-tab" onclick="switchTab('accessories',this)">💍 Gear</button>
     </div>
     <div id="shop-content" class="shop-list"></div>
   </aside>
 
-  <!-- CENTER: Main -->
+  <!-- CENTER -->
   <main id="center-panel">
+
     <div id="level-badge">
-      <div class="lvl-num" id="lvl-num">1</div>
+      <div class="lvl-circle" id="lvl-num">1</div>
       <div class="lvl-info">
-        <strong id="lvl-title">Novice Hunter</strong><br>
-        <span id="lvl-sub">Keep digging!</span>
+        <div class="lvl-title" id="lvl-title">Novice Hunter</div>
+        <div class="lvl-sub" id="lvl-sub">⛏️ Using: Wooden Shovel</div>
       </div>
     </div>
 
     <div id="stats-strip">
       <div class="stat-box">
-        <div class="label">Coins</div>
-        <div class="value" id="stat-coins">0</div>
+        <div class="stat-icon">🪙</div>
+        <div class="stat-text">
+          <div class="label">Coins</div>
+          <div class="value" id="stat-coins">0</div>
+        </div>
       </div>
       <div class="stat-box">
-        <div class="label">Per Click</div>
-        <div class="value" id="stat-cpc">0</div>
+        <div class="stat-icon">👆</div>
+        <div class="stat-text">
+          <div class="label">Per Click</div>
+          <div class="value" id="stat-cpc">0</div>
+        </div>
       </div>
       <div class="stat-box">
-        <div class="label">Per Second</div>
-        <div class="value" id="stat-cps">0</div>
+        <div class="stat-icon">⚡</div>
+        <div class="stat-text">
+          <div class="label">Per Second</div>
+          <div class="value" id="stat-cps">0/s</div>
+        </div>
       </div>
       <div class="stat-box">
-        <div class="label">Total Digs</div>
-        <div class="value" id="stat-digs">0</div>
+        <div class="stat-icon">🏆</div>
+        <div class="stat-text">
+          <div class="label">Total Digs</div>
+          <div class="value" id="stat-digs">0</div>
+        </div>
       </div>
     </div>
 
-    <div id="multiplier-display">Global multiplier: <span id="mult-val">1.00×</span></div>
+    <div id="multiplier-display">✨ Global multiplier: <span id="mult-val">1.00×</span></div>
 
     <div id="xp-container">
       <div id="xp-label">
-        <span>XP</span>
+        <span><span class="xp-icon">⭐</span> Experience</span>
         <span id="xp-text">0 / 100</span>
       </div>
       <div id="xp-bar-bg">
@@ -535,19 +692,23 @@
       </div>
     </div>
 
-    <button id="dig-btn" onclick="dig(event)">
-      <span class="dig-icon">⛏️</span>
-      DIG
-    </button>
+    <div id="dig-wrap">
+      <div class="dig-ring"></div>
+      <button id="dig-btn" onclick="dig(event)">
+        <span class="dig-icon">⛏️</span>
+        <span class="dig-label">DIG</span>
+      </button>
+    </div>
 
-    <div id="digs-display" id="shovel-display">Using: Wooden Shovel</div>
+    <div id="dig-sub">🌍 Click to dig for treasure!</div>
+
   </main>
 
   <!-- RIGHT: Log + Collection -->
   <aside id="right-panel">
     <div class="panel-title">📜 Recent Finds</div>
     <div id="log-list"></div>
-    <div class="section-title">🗂 Collection</div>
+    <div class="section-title">🗂️ Collection</div>
     <div id="collection-grid"></div>
   </aside>
 
@@ -559,40 +720,40 @@
 // ─────────────────────────────────────────────
 
 const SHOVELS = [
-  { id: 'wooden',  name: 'Wooden Shovel',       cost: 0,      cpc: 1,   xpc: 1,  unlockLvl: 1 },
-  { id: 'iron',    name: 'Iron Shovel',          cost: 150,    cpc: 3,   xpc: 2,  unlockLvl: 3 },
-  { id: 'steel',   name: 'Steel Shovel',         cost: 800,    cpc: 8,   xpc: 5,  unlockLvl: 7 },
-  { id: 'diamond', name: 'Diamond Shovel',       cost: 5000,   cpc: 25,  xpc: 12, unlockLvl: 12 },
-  { id: 'ancient', name: 'Ancient Relic Shovel', cost: 50000,  cpc: 100, xpc: 40, unlockLvl: 20 },
+  { id: 'wooden',  icon: '🪵', name: 'Wooden Shovel',       cost: 0,      cpc: 1,   xpc: 1,  unlockLvl: 1,  desc: 'A trusty stick + plank combo.' },
+  { id: 'iron',    icon: '🔨', name: 'Iron Shovel',          cost: 150,    cpc: 3,   xpc: 2,  unlockLvl: 3,  desc: 'Sturdy iron. Digs deeper.' },
+  { id: 'steel',   icon: '⚙️', name: 'Steel Shovel',         cost: 800,    cpc: 8,   xpc: 5,  unlockLvl: 7,  desc: 'Tempered steel edge.' },
+  { id: 'diamond', icon: '💎', name: 'Diamond Shovel',       cost: 5000,   cpc: 25,  xpc: 12, unlockLvl: 12, desc: 'Cuts through anything.' },
+  { id: 'ancient', icon: '🏺', name: 'Ancient Relic Shovel', cost: 50000,  cpc: 100, xpc: 40, unlockLvl: 20, desc: 'Forged by forgotten gods.' },
 ];
 
 const MINERS = [
-  { id: 'apprentice', name: 'Apprentice Miner',     baseCost: 50,     cps: 0.5,  xps: 0.3,  unlockLvl: 1 },
-  { id: 'skilled',    name: 'Skilled Miner',         baseCost: 350,    cps: 2.0,  xps: 1.0,  unlockLvl: 5 },
-  { id: 'expert',     name: 'Expert Miner',          baseCost: 2500,   cps: 8.0,  xps: 3.5,  unlockLvl: 10 },
-  { id: 'master',     name: 'Master Miner',          baseCost: 20000,  cps: 30.0, xps: 12.0, unlockLvl: 15 },
-  { id: 'legendary',  name: 'Legendary Prospector',  baseCost: 200000, cps: 150.0,xps: 50.0, unlockLvl: 25 },
+  { id: 'apprentice', icon: '🧑', name: 'Apprentice Miner',    baseCost: 50,     cps: 0.5,  xps: 0.3,  unlockLvl: 1,  desc: 'Young and eager.' },
+  { id: 'skilled',    icon: '👷', name: 'Skilled Miner',        baseCost: 350,    cps: 2.0,  xps: 1.0,  unlockLvl: 5,  desc: 'Has a nose for gold.' },
+  { id: 'expert',     icon: '🧑‍🔧', name: 'Expert Miner',        baseCost: 2500,   cps: 8.0,  xps: 3.5,  unlockLvl: 10, desc: 'Veteran of the deep.' },
+  { id: 'master',     icon: '👨‍🏭', name: 'Master Miner',        baseCost: 20000,  cps: 30.0, xps: 12.0, unlockLvl: 15, desc: 'Commands the earth.' },
+  { id: 'legendary',  icon: '🧙', name: 'Legendary Prospector', baseCost: 200000, cps: 150.0,xps: 50.0, unlockLvl: 25, desc: 'A myth among diggers.' },
 ];
 
 const ACCESSORIES = [
-  { id: 'lucky',    name: 'Lucky Charm',    cost: 500,    bonus: 0.10, unlockLvl: 2 },
-  { id: 'map',      name: 'Treasure Map',   cost: 3000,   bonus: 0.20, unlockLvl: 6 },
-  { id: 'rod',      name: 'Dowsing Rod',    cost: 15000,  bonus: 0.35, unlockLvl: 11 },
-  { id: 'compass',  name: 'Ancient Compass',cost: 75000,  bonus: 0.60, unlockLvl: 18 },
-  { id: 'eye',      name: 'Dragon Eye',     cost: 500000, bonus: 1.50, unlockLvl: 30 },
+  { id: 'lucky',   icon: '🍀', name: 'Lucky Charm',     cost: 500,    bonus: 0.10, unlockLvl: 2,  desc: '+10% all income.' },
+  { id: 'map',     icon: '🗺️', name: 'Treasure Map',    cost: 3000,   bonus: 0.20, unlockLvl: 6,  desc: '+20% all income.' },
+  { id: 'rod',     icon: '🔱', name: 'Dowsing Rod',     cost: 15000,  bonus: 0.35, unlockLvl: 11, desc: '+35% all income.' },
+  { id: 'compass', icon: '🧭', name: 'Ancient Compass', cost: 75000,  bonus: 0.60, unlockLvl: 18, desc: '+60% all income.' },
+  { id: 'eye',     icon: '👁️', name: 'Dragon Eye',      cost: 500000, bonus: 1.50, unlockLvl: 30, desc: '+150% all income.' },
 ];
 
 const TREASURES = [
-  { id: 'dirt',     name: 'Dirt',             rarity: 'common',    icon: '🪨', xp: 1,   coins: 1,   unlockLvl: 1,  weight: 500 },
+  { id: 'dirt',     name: 'Dirt',             rarity: 'common',    icon: '🟤', xp: 1,   coins: 1,   unlockLvl: 1,  weight: 500 },
   { id: 'stone',    name: 'Stone',            rarity: 'common',    icon: '🪨', xp: 1,   coins: 1,   unlockLvl: 1,  weight: 400 },
   { id: 'coal',     name: 'Coal',             rarity: 'common',    icon: '⚫', xp: 2,   coins: 2,   unlockLvl: 1,  weight: 250 },
-  { id: 'iron',     name: 'Iron',             rarity: 'uncommon',  icon: '🔩', xp: 4,   coins: 3,   unlockLvl: 1,  weight: 150 },
-  { id: 'gold',     name: 'Gold Nugget',      rarity: 'uncommon',  icon: '🥇', xp: 6,   coins: 8,   unlockLvl: 3,  weight: 80  },
-  { id: 'ruby',     name: 'Ruby',             rarity: 'rare',      icon: '🔴', xp: 12,  coins: 20,  unlockLvl: 5,  weight: 35  },
+  { id: 'iron',     name: 'Iron Ore',         rarity: 'uncommon',  icon: '🔩', xp: 4,   coins: 3,   unlockLvl: 1,  weight: 150 },
+  { id: 'gold',     name: 'Gold Nugget',      rarity: 'uncommon',  icon: '🏅', xp: 6,   coins: 8,   unlockLvl: 3,  weight: 80  },
+  { id: 'ruby',     name: 'Ruby',             rarity: 'rare',      icon: '♦️', xp: 12,  coins: 20,  unlockLvl: 5,  weight: 35  },
   { id: 'emerald',  name: 'Emerald',          rarity: 'rare',      icon: '💚', xp: 15,  coins: 25,  unlockLvl: 8,  weight: 25  },
-  { id: 'sapphire', name: 'Sapphire',         rarity: 'rare',      icon: '🔵', xp: 18,  coins: 30,  unlockLvl: 10, weight: 18  },
+  { id: 'sapphire', name: 'Sapphire',         rarity: 'rare',      icon: '💠', xp: 18,  coins: 30,  unlockLvl: 10, weight: 18  },
   { id: 'diamond',  name: 'Diamond',          rarity: 'epic',      icon: '💎', xp: 35,  coins: 75,  unlockLvl: 14, weight: 8   },
-  { id: 'obsidian', name: 'Obsidian',         rarity: 'epic',      icon: '🖤', xp: 30,  coins: 60,  unlockLvl: 16, weight: 5   },
+  { id: 'obsidian', name: 'Obsidian',         rarity: 'epic',      icon: '🔮', xp: 30,  coins: 60,  unlockLvl: 16, weight: 5   },
   { id: 'artifact', name: 'Ancient Artifact', rarity: 'legendary', icon: '🏺', xp: 100, coins: 300, unlockLvl: 20, weight: 1   },
 ];
 
@@ -602,6 +763,14 @@ const RARITY_COLOR = {
   rare:      '#5dc8f5',
   epic:      '#c061cb',
   legendary: '#f5a623',
+};
+
+const RARITY_PARTICLES = {
+  common:    ['#aaa','#ccc','#888'],
+  uncommon:  ['#57e389','#3fb950','#a8ffbc'],
+  rare:      ['#5dc8f5','#3dafd4','#a0e8ff'],
+  epic:      ['#c061cb','#9a3faa','#e89ded'],
+  legendary: ['#f5a623','#e8c96a','#fff5a0','#ff9500'],
 };
 
 const LEVEL_TITLES = [
@@ -618,85 +787,42 @@ const LEVEL_TITLES = [
 // ─────────────────────────────────────────────
 
 let gs = {
-  coins: 0,
-  xp: 0,
-  level: 1,
-  totalDigs: 0,
+  coins: 0, xp: 0, level: 1, totalDigs: 0,
   currentShovel: 'wooden',
-  miners: {},
-  accessories: {},
-  inventory: {},
-  log: [],
+  miners: {}, accessories: {}, inventory: {}, log: [],
   lastSave: Date.now(),
 };
 
 let currentTab = 'shovels';
-let xpAccum = 0; // fractional XP accumulator for miners
+let xpAccum = 0;
 
 // ─────────────────────────────────────────────
 // FORMULAS
 // ─────────────────────────────────────────────
 
-function xpRequired(lvl) {
-  return Math.floor(lvl * 100 * Math.pow(1.15, lvl));
-}
+const xpRequired = lvl => Math.floor(lvl * 100 * Math.pow(1.15, lvl));
+const getShovel  = ()  => SHOVELS.find(s => s.id === gs.currentShovel) || SHOVELS[0];
 
 function globalMultiplier() {
-  let bonus = 0;
-  for (const acc of ACCESSORIES) {
-    if (gs.accessories[acc.id]) bonus += acc.bonus;
-  }
-  return 1 + bonus;
+  let b = 0;
+  for (const a of ACCESSORIES) if (gs.accessories[a.id]) b += a.bonus;
+  return 1 + b;
 }
-
-function getShovel() {
-  return SHOVELS.find(s => s.id === gs.currentShovel) || SHOVELS[0];
-}
-
-function coinsPerClick() {
-  return getShovel().cpc * globalMultiplier();
-}
-
-function xpPerClick() {
-  return getShovel().xpc;
-}
-
-function coinsPerSecond() {
-  let total = 0;
-  for (const m of MINERS) {
-    const count = gs.miners[m.id] || 0;
-    total += m.cps * count;
-  }
-  return total * globalMultiplier();
-}
-
-function xpPerSecond() {
-  let total = 0;
-  for (const m of MINERS) {
-    const count = gs.miners[m.id] || 0;
-    total += m.xps * count;
-  }
-  return total;
-}
-
-function minerCost(miner) {
-  const owned = gs.miners[miner.id] || 0;
-  return Math.floor(miner.baseCost * Math.pow(1.15, owned));
-}
+const coinsPerClick  = () => getShovel().cpc * globalMultiplier();
+const coinsPerSecond = () => MINERS.reduce((t,m) => t + m.cps*(gs.miners[m.id]||0), 0) * globalMultiplier();
+const xpPerSecond    = () => MINERS.reduce((t,m) => t + m.xps*(gs.miners[m.id]||0), 0);
+const minerCost      = m  => Math.floor(m.baseCost * Math.pow(1.15, gs.miners[m.id]||0));
 
 // ─────────────────────────────────────────────
-// TREASURE ROLL
+// ROLL
 // ─────────────────────────────────────────────
 
 function rollTreasure() {
-  const available = TREASURES.filter(t => t.unlockLvl <= gs.level);
-  const totalWeight = available.reduce((s, t) => s + t.weight, 0);
-  let r = Math.random() * totalWeight;
-  for (const t of available) {
-    r -= t.weight;
-    if (r <= 0) return t;
-  }
-  return available[available.length - 1];
+  const pool = TREASURES.filter(t => t.unlockLvl <= gs.level);
+  const total = pool.reduce((s,t) => s+t.weight, 0);
+  let r = Math.random() * total;
+  for (const t of pool) { r -= t.weight; if (r <= 0) return t; }
+  return pool[pool.length-1];
 }
 
 // ─────────────────────────────────────────────
@@ -708,47 +834,35 @@ function dig(event) {
   btn.classList.remove('shaking');
   void btn.offsetWidth;
   btn.classList.add('shaking');
-  btn.addEventListener('animationend', () => btn.classList.remove('shaking'), { once: true });
+  btn.addEventListener('animationend', () => btn.classList.remove('shaking'), {once:true});
 
-  const mult = globalMultiplier();
-  const shovel = getShovel();
-  const earned = shovel.cpc * mult;
-  const earnedXP = shovel.xpc;
+  const mult    = globalMultiplier();
+  const shovel  = getShovel();
+  const earned  = shovel.cpc * mult;
+  const earnXP  = shovel.xpc;
 
   gs.coins += earned;
   gs.totalDigs++;
 
   const treasure = rollTreasure();
-  const tCoins = treasure.coins * mult;
-  const tXP = treasure.xp;
-
+  const tCoins   = treasure.coins * mult;
   gs.coins += tCoins;
-  addXP(earnedXP + tXP);
+  addXP(earnXP + treasure.xp);
+  gs.inventory[treasure.id] = (gs.inventory[treasure.id]||0) + 1;
 
-  // Inventory
-  gs.inventory[treasure.id] = (gs.inventory[treasure.id] || 0) + 1;
-
-  // Log
-  const entry = {
-    name: treasure.name,
-    rarity: treasure.rarity,
-    icon: treasure.icon,
-    coins: Math.floor(earned + tCoins),
-    xp: earnedXP + tXP,
-  };
-  gs.log.unshift(entry);
+  const totalCoins = Math.floor(earned + tCoins);
+  gs.log.unshift({ name: treasure.name, rarity: treasure.rarity, icon: treasure.icon, coins: totalCoins, xp: earnXP + treasure.xp });
   if (gs.log.length > 20) gs.log.pop();
 
-  // Floating text
-  if (event) spawnFloat(event.clientX, event.clientY, `+${fmt(Math.floor(earned + tCoins))} 🪙`);
-
-  // Particles
-  if (event) spawnParticles(event.clientX, event.clientY);
-
-  // Epic+ popup
-  if (treasure.rarity === 'epic' || treasure.rarity === 'legendary') {
-    showTreasurePopup(treasure);
+  if (event) {
+    spawnFloat(event.clientX, event.clientY, `+${fmt(totalCoins)} 🪙`, '#f5a623');
+    if (treasure.rarity !== 'common') {
+      setTimeout(() => spawnFloat(event.clientX + 28, event.clientY - 18, treasure.icon, RARITY_COLOR[treasure.rarity]), 120);
+    }
+    spawnParticles(event.clientX, event.clientY, treasure.rarity);
   }
+
+  if (treasure.rarity === 'epic' || treasure.rarity === 'legendary') showTreasurePopup(treasure);
 
   renderAll();
 }
@@ -761,11 +875,7 @@ function addXP(amount) {
 function checkLevelUp() {
   while (true) {
     const req = xpRequired(gs.level);
-    if (gs.xp >= req) {
-      gs.xp -= req;
-      gs.level++;
-      showLevelUp();
-    } else break;
+    if (gs.xp >= req) { gs.xp -= req; gs.level++; showLevelUp(); } else break;
   }
 }
 
@@ -773,62 +883,99 @@ function checkLevelUp() {
 // ANIMATIONS
 // ─────────────────────────────────────────────
 
-function spawnFloat(x, y, text) {
+function spawnFloat(x, y, text, color) {
   const el = document.createElement('div');
   el.className = 'float-text';
   el.textContent = text;
-  el.style.left = (x - 20) + 'px';
-  el.style.top = (y - 10) + 'px';
+  el.style.cssText = `left:${x-24}px; top:${y-8}px; color:${color||'#f5a623'}; text-shadow:0 0 10px ${color||'#f5a623'}88;`;
   document.body.appendChild(el);
   el.addEventListener('animationend', () => el.remove());
 }
 
-function spawnParticles(x, y) {
-  const colors = ['#f5a623', '#e8c96a', '#fff', '#c061cb'];
-  for (let i = 0; i < 8; i++) {
+function spawnParticles(x, y, rarity) {
+  const colors = RARITY_PARTICLES[rarity] || RARITY_PARTICLES.common;
+  const count  = rarity === 'legendary' ? 20 : rarity === 'epic' ? 16 : rarity === 'rare' ? 12 : 8;
+  const shapes = ['50%', '0%', '20%']; // circle, square, slightly rounded
+
+  for (let i = 0; i < count; i++) {
     const el = document.createElement('div');
     el.className = 'particle';
-    const size = 4 + Math.random() * 6;
-    const angle = Math.random() * Math.PI * 2;
-    const dist = 30 + Math.random() * 60;
+    const size  = 4 + Math.random() * 8;
+    const angle = (Math.PI * 2 * i / count) + Math.random() * 0.5;
+    const dist  = 40 + Math.random() * 80;
+    const dur   = 0.6 + Math.random() * 0.6;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
     el.style.cssText = `
       width:${size}px; height:${size}px;
       left:${x}px; top:${y}px;
-      background:${colors[Math.floor(Math.random()*colors.length)]};
+      background:${color};
+      border-radius:${shape};
       --tx:${Math.cos(angle)*dist}px;
       --ty:${Math.sin(angle)*dist}px;
+      --dur:${dur}s;
+      --rot:${Math.random()*360}deg;
+      box-shadow: 0 0 4px ${color};
     `;
     document.body.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
   }
 }
 
-function showTreasurePopup(treasure) {
-  const old = document.getElementById('treasure-popup');
-  if (old) old.remove();
+function showTreasurePopup(t) {
+  document.getElementById('treasure-popup')?.remove();
   const el = document.createElement('div');
   el.id = 'treasure-popup';
   el.innerHTML = `
-    <div class="popup-box ${treasure.rarity}">
-      <div class="pop-rarity" style="color:${RARITY_COLOR[treasure.rarity]}">${treasure.rarity.toUpperCase()} FIND!</div>
-      <div class="pop-icon">${treasure.icon}</div>
-      <div class="pop-name" style="color:${RARITY_COLOR[treasure.rarity]}">${treasure.name}</div>
-      <div class="pop-rewards">+${treasure.coins} coins &nbsp;·&nbsp; +${treasure.xp} XP</div>
+    <div class="popup-box ${t.rarity}">
+      <div class="pop-rarity" style="color:${RARITY_COLOR[t.rarity]}">${t.rarity.toUpperCase()} FIND!</div>
+      <div class="pop-icon">${t.icon}</div>
+      <div class="pop-name" style="color:${RARITY_COLOR[t.rarity]}">${t.name}</div>
+      <div class="pop-rewards">🪙 +${t.coins} coins &nbsp;·&nbsp; ⭐ +${t.xp} XP</div>
     </div>`;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2200);
+  setTimeout(() => el.remove(), 2400);
 }
 
 function showLevelUp() {
-  const old = document.getElementById('levelup-banner');
-  if (old) old.remove();
+  document.getElementById('levelup-banner')?.remove();
   const el = document.createElement('div');
   el.id = 'levelup-banner';
-  const title = LEVEL_TITLES[Math.min(gs.level, LEVEL_TITLES.length - 1)] || `Level ${gs.level}`;
-  el.innerHTML = `<h2>LEVEL UP! ✨</h2><p>You are now <strong>${title}</strong> (Lvl ${gs.level})</p>`;
+  const title = LEVEL_TITLES[Math.min(gs.level, LEVEL_TITLES.length-1)] || `Level ${gs.level}`;
+  el.innerHTML = `<div class="banner-icon">🎉</div><h2>LEVEL UP!</h2><p>You are now <strong>${title}</strong> · Lvl ${gs.level}</p>`;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2000);
+  // Burst from center
+  const cx = window.innerWidth/2, cy = window.innerHeight/2;
+  spawnParticles(cx, cy, 'legendary');
+  spawnParticles(cx-50, cy+30, 'epic');
+  spawnParticles(cx+50, cy+30, 'rare');
+  setTimeout(() => el.remove(), 2200);
 }
+
+// ─────────────────────────────────────────────
+// AMBIENT SPARKLES
+// ─────────────────────────────────────────────
+
+const SPARKLE_COLORS = ['#f5a623','#e8c96a','#5dc8f5','#57e389','#c061cb','#fff','#ffe580'];
+function spawnAmbientSparkle() {
+  const layer = document.getElementById('sparkle-layer');
+  const el    = document.createElement('div');
+  el.className = 'sparkle';
+  const size  = 2 + Math.random() * 4;
+  const color = SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)];
+  const dur   = 3 + Math.random() * 4;
+  el.style.cssText = `
+    width:${size}px; height:${size}px;
+    left:${Math.random()*100}%;
+    top:${60 + Math.random()*40}%;
+    background:${color};
+    box-shadow: 0 0 ${size*2}px ${color};
+    animation-duration: ${dur}s;
+  `;
+  layer.appendChild(el);
+  setTimeout(() => el.remove(), dur * 1000);
+}
+setInterval(spawnAmbientSparkle, 180);
 
 // ─────────────────────────────────────────────
 // SHOP
@@ -842,35 +989,26 @@ function switchTab(tab, btn) {
 }
 
 function buyShovel(id) {
-  const shovel = SHOVELS.find(s => s.id === id);
-  if (!shovel) return;
-  if (gs.level < shovel.unlockLvl) return;
-  if (shovel.id === gs.currentShovel) return;
-  if (gs.coins < shovel.cost) return;
-  gs.coins -= shovel.cost;
-  gs.currentShovel = shovel.id;
+  const s = SHOVELS.find(x => x.id === id);
+  if (!s || gs.level < s.unlockLvl || s.id === gs.currentShovel || gs.coins < s.cost) return;
+  gs.coins -= s.cost;
+  gs.currentShovel = s.id;
   renderAll();
 }
-
 function buyMiner(id) {
-  const miner = MINERS.find(m => m.id === id);
-  if (!miner) return;
-  if (gs.level < miner.unlockLvl) return;
-  const cost = minerCost(miner);
+  const m = MINERS.find(x => x.id === id);
+  if (!m || gs.level < m.unlockLvl) return;
+  const cost = minerCost(m);
   if (gs.coins < cost) return;
   gs.coins -= cost;
-  gs.miners[miner.id] = (gs.miners[miner.id] || 0) + 1;
+  gs.miners[m.id] = (gs.miners[m.id]||0) + 1;
   renderAll();
 }
-
 function buyAccessory(id) {
-  const acc = ACCESSORIES.find(a => a.id === id);
-  if (!acc) return;
-  if (gs.level < acc.unlockLvl) return;
-  if (gs.accessories[acc.id]) return;
-  if (gs.coins < acc.cost) return;
-  gs.coins -= acc.cost;
-  gs.accessories[acc.id] = true;
+  const a = ACCESSORIES.find(x => x.id === id);
+  if (!a || gs.level < a.unlockLvl || gs.accessories[a.id] || gs.coins < a.cost) return;
+  gs.coins -= a.cost;
+  gs.accessories[a.id] = true;
   renderAll();
 }
 
@@ -879,42 +1017,36 @@ function buyAccessory(id) {
 // ─────────────────────────────────────────────
 
 function fmt(n) {
-  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  if (n >= 1e9) return (n/1e9).toFixed(2)+'B';
+  if (n >= 1e6) return (n/1e6).toFixed(2)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
   return Math.floor(n).toString();
 }
 
 function renderStats() {
   document.getElementById('stat-coins').textContent = fmt(gs.coins);
-  document.getElementById('stat-cpc').textContent = fmt(coinsPerClick());
-  document.getElementById('stat-cps').textContent = fmt(coinsPerSecond()) + '/s';
-  document.getElementById('stat-digs').textContent = fmt(gs.totalDigs);
-  document.getElementById('mult-val').textContent = globalMultiplier().toFixed(2) + '×';
-
-  // Level badge
-  document.getElementById('lvl-num').textContent = gs.level;
-  const title = LEVEL_TITLES[Math.min(gs.level, LEVEL_TITLES.length - 1)] || `Level ${gs.level}`;
+  document.getElementById('stat-cpc').textContent   = fmt(coinsPerClick());
+  document.getElementById('stat-cps').textContent   = fmt(coinsPerSecond())+'/s';
+  document.getElementById('stat-digs').textContent  = fmt(gs.totalDigs);
+  document.getElementById('mult-val').textContent   = globalMultiplier().toFixed(2)+'×';
+  document.getElementById('lvl-num').textContent    = gs.level;
+  const title = LEVEL_TITLES[Math.min(gs.level, LEVEL_TITLES.length-1)] || `Level ${gs.level}`;
   document.getElementById('lvl-title').textContent = title;
-  document.getElementById('lvl-sub').textContent = `Using: ${getShovel().name}`;
-
-  // XP bar
+  document.getElementById('lvl-sub').textContent   = `⛏️ Using: ${getShovel().name}`;
   const req = xpRequired(gs.level);
   const pct = Math.min(100, (gs.xp / req) * 100);
-  document.getElementById('xp-bar-fill').style.width = pct + '%';
+  document.getElementById('xp-bar-fill').style.width = pct+'%';
   document.getElementById('xp-text').textContent = `${fmt(gs.xp)} / ${fmt(req)}`;
 }
 
 function renderLog() {
   const list = document.getElementById('log-list');
   list.innerHTML = '';
-  for (const entry of gs.log) {
-    const div = document.createElement('div');
-    div.className = `log-entry ${entry.rarity}`;
-    div.innerHTML = `
-      <span style="color:${RARITY_COLOR[entry.rarity]}">${entry.icon} ${entry.name}</span>
-      <span class="log-rewards">+${entry.coins}🪙 +${entry.xp}XP</span>`;
-    list.appendChild(div);
+  for (const e of gs.log) {
+    const d = document.createElement('div');
+    d.className = `log-entry ${e.rarity}`;
+    d.innerHTML = `<span style="color:${RARITY_COLOR[e.rarity]}">${e.icon} ${e.name}</span><span class="log-rewards">+${e.coins}🪙 +${e.xp}⭐</span>`;
+    list.appendChild(d);
   }
 }
 
@@ -924,76 +1056,79 @@ function renderCollection() {
   for (const t of TREASURES) {
     const count = gs.inventory[t.id] || 0;
     const found = count > 0;
-    const div = document.createElement('div');
-    div.className = 'coll-item' + (found ? '' : ' undiscovered');
-    div.title = found ? `${t.name} (×${count}) — ${t.rarity}` : '???';
-    div.innerHTML = `
+    const d = document.createElement('div');
+    d.className = 'coll-item' + (found ? '' : ' undiscovered');
+    d.title = found ? `${t.name} ×${count} — ${t.rarity}` : '???';
+    d.innerHTML = `
       <div class="coll-icon">${t.icon}</div>
       <div class="coll-name" style="color:${found ? RARITY_COLOR[t.rarity] : 'inherit'}">${found ? t.name : '???'}</div>
       ${found ? `<div class="coll-count">×${count}</div>` : ''}`;
-    grid.appendChild(div);
+    grid.appendChild(d);
   }
 }
 
 function renderShop() {
-  const container = document.getElementById('shop-content');
-  container.innerHTML = '';
+  const c = document.getElementById('shop-content');
+  c.innerHTML = '';
 
   if (currentTab === 'shovels') {
     for (const s of SHOVELS) {
       const locked = gs.level < s.unlockLvl;
-      const owned = gs.currentShovel === s.id;
-      const cantAfford = !owned && !locked && gs.coins < s.cost;
-      const div = document.createElement('div');
-      div.className = 'shop-item' + (locked ? ' locked' : '') + (cantAfford ? ' cant-afford' : '') + (owned ? ' owned-shovel' : '');
-      div.innerHTML = `
-        <div class="shop-item-header">
-          <span class="shop-item-name">${s.name}</span>
-          <span class="shop-item-cost">${owned ? '✓ Active' : s.cost === 0 ? 'FREE' : fmt(s.cost) + '🪙'}</span>
-        </div>
-        <div class="shop-item-desc">
-          ${locked ? `<span class="lock-icon">🔒 Unlock at level ${s.unlockLvl}</span>` : `+${s.cpc} coins/click · +${s.xpc} XP/click`}
+      const owned  = gs.currentShovel === s.id;
+      const cant   = !owned && !locked && gs.coins < s.cost;
+      const d = document.createElement('div');
+      d.className = 'shop-item' + (locked?' locked':'') + (cant?' cant-afford':'') + (owned?' owned-active':'');
+      d.innerHTML = `
+        <div class="shop-item-icon">${s.icon}</div>
+        <div class="shop-item-body">
+          <div class="shop-item-header">
+            <span class="shop-item-name">${s.name}</span>
+            <span class="shop-item-cost">${owned ? '✅ Active' : s.cost===0 ? 'FREE' : fmt(s.cost)+'🪙'}</span>
+          </div>
+          <div class="shop-item-desc">${locked ? `🔒 Unlock at level ${s.unlockLvl}` : `${s.desc} · +${s.cpc}🪙/click · +${s.xpc}⭐/click`}</div>
         </div>`;
-      if (!locked && !owned) div.onclick = () => buyShovel(s.id);
-      container.appendChild(div);
+      if (!locked && !owned) d.onclick = () => buyShovel(s.id);
+      c.appendChild(d);
     }
   } else if (currentTab === 'miners') {
     for (const m of MINERS) {
       const locked = gs.level < m.unlockLvl;
-      const count = gs.miners[m.id] || 0;
-      const cost = minerCost(m);
-      const cantAfford = !locked && gs.coins < cost;
-      const div = document.createElement('div');
-      div.className = 'shop-item' + (locked ? ' locked' : '') + (cantAfford ? ' cant-afford' : '');
-      div.innerHTML = `
-        <div class="shop-item-header">
-          <span class="shop-item-name">${m.name}</span>
-          <span class="shop-item-cost">${locked ? '🔒' : fmt(cost) + '🪙'}</span>
-        </div>
-        <div class="shop-item-desc">
-          ${locked ? `Unlock at level ${m.unlockLvl}` : `${m.cps}/s coins · ${m.xps}/s XP`}
+      const count  = gs.miners[m.id] || 0;
+      const cost   = minerCost(m);
+      const cant   = !locked && gs.coins < cost;
+      const d = document.createElement('div');
+      d.className = 'shop-item' + (locked?' locked':'') + (cant?' cant-afford':'');
+      d.innerHTML = `
+        <div class="shop-item-icon">${m.icon}</div>
+        <div class="shop-item-body">
+          <div class="shop-item-header">
+            <span class="shop-item-name">${m.name}</span>
+            <span class="shop-item-cost">${locked ? '🔒' : fmt(cost)+'🪙'}</span>
+          </div>
+          <div class="shop-item-desc">${locked ? `Unlock at level ${m.unlockLvl}` : `${m.desc} · ⚡${m.cps}/s · ⭐${m.xps}/s`}</div>
         </div>
         ${count > 0 ? `<div class="shop-item-count">×${count}</div>` : ''}`;
-      if (!locked) div.onclick = () => buyMiner(m.id);
-      container.appendChild(div);
+      if (!locked) d.onclick = () => buyMiner(m.id);
+      c.appendChild(d);
     }
-  } else if (currentTab === 'accessories') {
+  } else {
     for (const a of ACCESSORIES) {
       const locked = gs.level < a.unlockLvl;
-      const owned = !!gs.accessories[a.id];
-      const cantAfford = !locked && !owned && gs.coins < a.cost;
-      const div = document.createElement('div');
-      div.className = 'shop-item' + (locked ? ' locked' : '') + (cantAfford ? ' cant-afford' : '') + (owned ? ' owned-shovel' : '');
-      div.innerHTML = `
-        <div class="shop-item-header">
-          <span class="shop-item-name">${a.name}</span>
-          <span class="shop-item-cost">${owned ? '✓ Owned' : locked ? '🔒' : fmt(a.cost) + '🪙'}</span>
-        </div>
-        <div class="shop-item-desc">
-          ${locked ? `Unlock at level ${a.unlockLvl}` : `+${Math.round(a.bonus * 100)}% global bonus`}
+      const owned  = !!gs.accessories[a.id];
+      const cant   = !locked && !owned && gs.coins < a.cost;
+      const d = document.createElement('div');
+      d.className = 'shop-item' + (locked?' locked':'') + (cant?' cant-afford':'') + (owned?' owned-active':'');
+      d.innerHTML = `
+        <div class="shop-item-icon">${a.icon}</div>
+        <div class="shop-item-body">
+          <div class="shop-item-header">
+            <span class="shop-item-name">${a.name}</span>
+            <span class="shop-item-cost">${owned ? '✅ Owned' : locked ? '🔒' : fmt(a.cost)+'🪙'}</span>
+          </div>
+          <div class="shop-item-desc">${locked ? `Unlock at level ${a.unlockLvl}` : `${a.desc}`}</div>
         </div>`;
-      if (!locked && !owned) div.onclick = () => buyAccessory(a.id);
-      container.appendChild(div);
+      if (!locked && !owned) d.onclick = () => buyAccessory(a.id);
+      c.appendChild(d);
     }
   }
 }
@@ -1006,28 +1141,21 @@ function renderAll() {
 }
 
 // ─────────────────────────────────────────────
-// AUTO TICK (100ms)
+// TICK
 // ─────────────────────────────────────────────
 
 let lastTick = Date.now();
 function tick() {
   const now = Date.now();
-  const dt = (now - lastTick) / 1000;
-  lastTick = now;
-
+  const dt  = (now - lastTick) / 1000;
+  lastTick  = now;
   const cps = coinsPerSecond();
   const xps = xpPerSecond();
-
   if (cps > 0 || xps > 0) {
-    gs.coins += cps * dt;
-    xpAccum += xps * dt;
-    if (xpAccum >= 1) {
-      const whole = Math.floor(xpAccum);
-      xpAccum -= whole;
-      addXP(whole);
-    }
+    gs.coins  += cps * dt;
+    xpAccum   += xps * dt;
+    if (xpAccum >= 1) { const w = Math.floor(xpAccum); xpAccum -= w; addXP(w); }
     renderStats();
-    // Don't re-render shop every tick — too expensive
   }
 }
 setInterval(tick, 100);
@@ -1041,6 +1169,8 @@ const SAVE_KEY = 'treasureHunterSave';
 function saveGame() {
   gs.lastSave = Date.now();
   localStorage.setItem(SAVE_KEY, JSON.stringify(gs));
+  const ind = document.getElementById('save-indicator');
+  if (ind) { ind.textContent = '💾 Saved!'; setTimeout(() => ind.textContent='💾 Auto-saves', 1500); }
 }
 
 function loadGame() {
@@ -1048,42 +1178,31 @@ function loadGame() {
   if (!raw) return;
   try {
     const saved = JSON.parse(raw);
-    // Deep merge known keys
     const keys = ['coins','xp','level','totalDigs','currentShovel','miners','accessories','inventory','log','lastSave'];
     for (const k of keys) {
-      if (saved[k] !== undefined) {
-        if (typeof saved[k] === 'object' && saved[k] !== null && !Array.isArray(saved[k])) {
-          gs[k] = Object.assign({}, gs[k], saved[k]);
-        } else {
-          gs[k] = saved[k];
-        }
-      }
+      if (saved[k] === undefined) continue;
+      if (typeof saved[k] === 'object' && saved[k] !== null && !Array.isArray(saved[k]))
+        gs[k] = Object.assign({}, gs[k], saved[k]);
+      else gs[k] = saved[k];
     }
     if (Array.isArray(saved.log)) gs.log = saved.log;
 
-    // Offline earnings (cap 8h)
-    const offlineSec = Math.min((Date.now() - gs.lastSave) / 1000, 8 * 3600);
-    const cps = coinsPerSecond();
-    const xps = xpPerSecond();
-    if (offlineSec > 10 && (cps > 0 || xps > 0)) {
-      const earnedCoins = cps * offlineSec;
-      const earnedXP = xps * offlineSec;
-      gs.coins += earnedCoins;
-      if (earnedXP >= 1) addXP(Math.floor(earnedXP));
-
-      const notice = document.createElement('div');
-      notice.id = 'offline-notice';
-      notice.innerHTML = `⏰ Welcome back! Earned <strong>${fmt(earnedCoins)} coins</strong> while away (${Math.floor(offlineSec)}s).`;
-      document.body.appendChild(notice);
-      setTimeout(() => notice.remove(), 4000);
+    const offSec = Math.min((Date.now() - gs.lastSave) / 1000, 8*3600);
+    const cps = coinsPerSecond(), xps = xpPerSecond();
+    if (offSec > 10 && (cps > 0 || xps > 0)) {
+      gs.coins += cps * offSec;
+      if (xps * offSec >= 1) addXP(Math.floor(xps * offSec));
+      const n = document.createElement('div');
+      n.id = 'offline-notice';
+      n.innerHTML = `⏰ Welcome back! Earned <strong>${fmt(cps*offSec)} 🪙</strong> while away.`;
+      document.body.appendChild(n);
+      setTimeout(() => n.remove(), 4000);
     }
-  } catch(e) {
-    console.warn('Save load error', e);
-  }
+  } catch(e) { console.warn('Load error', e); }
 }
 
 function resetGame() {
-  if (!confirm('Reset all progress? This cannot be undone!')) return;
+  if (!confirm('Reset ALL progress? This cannot be undone!')) return;
   localStorage.removeItem(SAVE_KEY);
   location.reload();
 }
@@ -1094,7 +1213,6 @@ window.addEventListener('beforeunload', saveGame);
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
-
 loadGame();
 renderAll();
 </script>
