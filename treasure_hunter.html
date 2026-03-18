@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treasure Hunter</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #30363d;
+    --accent: #f5a623;
+    --accent2: #e8c96a;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --common: #aaa;
+    --uncommon: #57e389;
+    --rare: #5dc8f5;
+    --epic: #c061cb;
+    --legendary: #f5a623;
+    --green: #3fb950;
+    --red: #f85149;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Layout ── */
+  #app {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  #header {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  #header h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px rgba(245,166,35,0.4);
+  }
+
+  #header .subtitle {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+
+  #header .reset-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+  }
+  #header .reset-btn:hover { background: var(--red); color: #fff; }
+
+  #left-panel, #right-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    max-height: calc(100vh - 53px);
+  }
+  #right-panel { border-right: none; border-left: 1px solid var(--border); }
+
+  #center-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── Panel headers ── */
+  .panel-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── Stats strip ── */
+  #stats-strip {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+  }
+  .stat-box .label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-box .value { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-top: 2px; }
+
+  /* ── Level badge ── */
+  #level-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #level-badge .lvl-num {
+    background: linear-gradient(135deg, var(--accent), #c8800a);
+    color: #000;
+    font-weight: 900;
+    font-size: 1.2rem;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 16px rgba(245,166,35,0.5);
+  }
+  #level-badge .lvl-info { font-size: 0.8rem; color: var(--muted); }
+  #level-badge .lvl-info strong { color: var(--text); }
+
+  /* ── XP bar ── */
+  #xp-container {
+    width: 100%;
+    max-width: 420px;
+  }
+  #xp-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  #xp-bar-bg {
+    height: 10px;
+    background: var(--surface2);
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  #xp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f5a623, #e8c96a);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  /* ── DIG button ── */
+  #dig-btn {
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    background: radial-gradient(circle at 35% 35%, #2a2010, #0d1117);
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(245,166,35,0.2), inset 0 0 20px rgba(245,166,35,0.05);
+    user-select: none;
+  }
+  #dig-btn:hover {
+    box-shadow: 0 0 40px rgba(245,166,35,0.4), inset 0 0 20px rgba(245,166,35,0.1);
+    transform: scale(1.03);
+  }
+  #dig-btn:active { transform: scale(0.96); }
+  #dig-btn .dig-icon { font-size: 2.2rem; display: block; margin-bottom: 4px; }
+
+  @keyframes dig-shake {
+    0%   { transform: rotate(0deg) scale(1); }
+    15%  { transform: rotate(-8deg) scale(0.96); }
+    30%  { transform: rotate(8deg) scale(0.98); }
+    45%  { transform: rotate(-5deg) scale(0.97); }
+    60%  { transform: rotate(5deg) scale(0.99); }
+    75%  { transform: rotate(-2deg) scale(1); }
+    100% { transform: rotate(0deg) scale(1); }
+  }
+  #dig-btn.shaking { animation: dig-shake 0.4s ease; }
+
+  /* ── Floating +coins ── */
+  .float-text {
+    position: fixed;
+    pointer-events: none;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1rem;
+    text-shadow: 0 0 8px rgba(245,166,35,0.8);
+    z-index: 9999;
+    animation: float-up 1.2s ease forwards;
+  }
+  @keyframes float-up {
+    0%   { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-70px); }
+  }
+
+  /* ── Treasure popup (Epic+) ── */
+  #treasure-popup {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    background: rgba(0,0,0,0.6);
+    animation: popup-bg 2.2s ease forwards;
+    pointer-events: none;
+  }
+  .popup-box {
+    background: var(--surface);
+    border: 2px solid var(--epic);
+    border-radius: 16px;
+    padding: 32px 48px;
+    text-align: center;
+    animation: treasure-pop 2.2s ease forwards;
+  }
+  .popup-box.legendary { border-color: var(--legendary); }
+  .popup-box .pop-rarity { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .popup-box .pop-icon { font-size: 3.5rem; }
+  .popup-box .pop-name { font-size: 1.5rem; font-weight: 800; margin-top: 8px; }
+  .popup-box .pop-rewards { color: var(--muted); margin-top: 6px; font-size: 0.85rem; }
+  @keyframes treasure-pop {
+    0%   { opacity: 0; transform: scale(0.5) rotate(-5deg); }
+    15%  { opacity: 1; transform: scale(1.15) rotate(2deg); }
+    25%  { transform: scale(0.95) rotate(0deg); }
+    35%  { transform: scale(1.05); }
+    45%  { transform: scale(1); }
+    75%  { opacity: 1; }
+    100% { opacity: 0; transform: scale(0.9) translateY(-20px); }
+  }
+  @keyframes popup-bg {
+    0%,70% { opacity: 1; }
+    100%   { opacity: 0; }
+  }
+
+  /* ── Level-up banner ── */
+  #levelup-banner {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10001;
+    background: linear-gradient(135deg, var(--surface), var(--surface2));
+    border: 2px solid var(--accent);
+    border-radius: 16px;
+    padding: 24px 56px;
+    text-align: center;
+    pointer-events: none;
+    animation: banner-anim 2s ease forwards;
+  }
+  #levelup-banner h2 { color: var(--accent); font-size: 2rem; text-shadow: 0 0 20px rgba(245,166,35,0.6); }
+  #levelup-banner p { color: var(--muted); margin-top: 4px; }
+  @keyframes banner-anim {
+    0%   { opacity: 0; transform: translate(-50%, -60%); }
+    15%  { opacity: 1; transform: translate(-50%, -50%); }
+    70%  { opacity: 1; transform: translate(-50%, -50%); }
+    100% { opacity: 0; transform: translate(-50%, -45%); }
+  }
+
+  /* ── Shop ── */
+  .shop-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .shop-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 10px 4px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+  }
+  .shop-tab:hover { color: var(--text); }
+  .shop-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .shop-list { padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+
+  .shop-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .shop-item:hover:not(.locked):not(.cant-afford) { border-color: var(--accent); background: #1f2b3a; }
+  .shop-item.locked { opacity: 0.4; cursor: not-allowed; }
+  .shop-item.cant-afford { opacity: 0.6; cursor: not-allowed; }
+  .shop-item.owned-shovel { border-color: var(--green); background: rgba(63,185,80,0.08); }
+
+  .shop-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .shop-item-name { font-weight: 700; font-size: 0.85rem; }
+  .shop-item-cost { font-size: 0.75rem; color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .shop-item-desc { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+  .shop-item-count { position: absolute; top: 6px; right: 6px; background: var(--accent); color: #000; border-radius: 999px; font-size: 0.65rem; font-weight: 800; padding: 1px 6px; }
+  .shop-item .lock-icon { font-size: 0.65rem; color: var(--muted); }
+  .shop-item.cant-afford .shop-item-cost { color: var(--red); }
+
+  /* ── Recent Finds ── */
+  #log-list {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .log-entry {
+    font-size: 0.72rem;
+    padding: 4px 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    border-left: 3px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    animation: log-in 0.3s ease;
+  }
+  @keyframes log-in {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .log-entry.common    { border-left-color: var(--common); }
+  .log-entry.uncommon  { border-left-color: var(--uncommon); }
+  .log-entry.rare      { border-left-color: var(--rare); }
+  .log-entry.epic      { border-left-color: var(--epic); }
+  .log-entry.legendary { border-left-color: var(--legendary); }
+
+  .log-name { }
+  .log-rewards { color: var(--muted); font-size: 0.65rem; }
+
+  /* ── Collection grid ── */
+  .section-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 14px 6px;
+    border-top: 1px solid var(--border);
+  }
+
+  #collection-grid {
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+  .coll-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 4px;
+    text-align: center;
+    position: relative;
+  }
+  .coll-item .coll-icon { font-size: 1.3rem; }
+  .coll-item .coll-name { font-size: 0.55rem; color: var(--muted); margin-top: 2px; }
+  .coll-item .coll-count {
+    position: absolute;
+    top: 2px; right: 3px;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .coll-item.undiscovered { opacity: 0.2; filter: grayscale(1); }
+
+  /* ── Scrollbars ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── Particles ── */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    border-radius: 50%;
+    z-index: 9000;
+    animation: particle-anim 1s ease forwards;
+  }
+  @keyframes particle-anim {
+    0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    #app {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+    }
+    #left-panel, #right-panel { max-height: none; border: none; border-bottom: 1px solid var(--border); }
+    #right-panel { border-left: none; }
+    #center-panel { padding: 16px; }
+  }
+
+  /* ── Misc ── */
+  .shovel-indicator {
+    font-size: 0.65rem;
+    color: var(--green);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  #multiplier-display {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+  }
+  #multiplier-display span { color: var(--uncommon); font-weight: 700; }
+
+  #offline-notice {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-size: 0.85rem;
+    z-index: 9999;
+    animation: slide-up 0.4s ease, fade-out 0.4s ease 3.6s forwards;
+    pointer-events: none;
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translate(-50%, 20px); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+  }
+  @keyframes fade-out {
+    to { opacity: 0; }
+  }
+
+  #digs-display { font-size: 0.7rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header id="header">
+    <div>⛏️</div>
+    <div>
+      <h1>TREASURE HUNTER</h1>
+      <div class="subtitle">Idle treasure digging adventure</div>
+    </div>
+    <button class="reset-btn" onclick="resetGame()">Reset</button>
+  </header>
+
+  <!-- LEFT: Shop -->
+  <aside id="left-panel">
+    <div class="panel-title">⚒ Shop</div>
+    <div class="shop-tabs">
+      <button class="shop-tab active" onclick="switchTab('shovels',this)">Shovels</button>
+      <button class="shop-tab" onclick="switchTab('miners',this)">Miners</button>
+      <button class="shop-tab" onclick="switchTab('accessories',this)">Accessories</button>
+    </div>
+    <div id="shop-content" class="shop-list"></div>
+  </aside>
+
+  <!-- CENTER: Main -->
+  <main id="center-panel">
+    <div id="level-badge">
+      <div class="lvl-num" id="lvl-num">1</div>
+      <div class="lvl-info">
+        <strong id="lvl-title">Novice Hunter</strong><br>
+        <span id="lvl-sub">Keep digging!</span>
+      </div>
+    </div>
+
+    <div id="stats-strip">
+      <div class="stat-box">
+        <div class="label">Coins</div>
+        <div class="value" id="stat-coins">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">Per Click</div>
+        <div class="value" id="stat-cpc">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">Per Second</div>
+        <div class="value" id="stat-cps">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="label">Total Digs</div>
+        <div class="value" id="stat-digs">0</div>
+      </div>
+    </div>
+
+    <div id="multiplier-display">Global multiplier: <span id="mult-val">1.00×</span></div>
+
+    <div id="xp-container">
+      <div id="xp-label">
+        <span>XP</span>
+        <span id="xp-text">0 / 100</span>
+      </div>
+      <div id="xp-bar-bg">
+        <div id="xp-bar-fill"></div>
+      </div>
+    </div>
+
+    <button id="dig-btn" onclick="dig(event)">
+      <span class="dig-icon">⛏️</span>
+      DIG
+    </button>
+
+    <div id="digs-display" id="shovel-display">Using: Wooden Shovel</div>
+  </main>
+
+  <!-- RIGHT: Log + Collection -->
+  <aside id="right-panel">
+    <div class="panel-title">📜 Recent Finds</div>
+    <div id="log-list"></div>
+    <div class="section-title">🗂 Collection</div>
+    <div id="collection-grid"></div>
+  </aside>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+
+const SHOVELS = [
+  { id: 'wooden',  name: 'Wooden Shovel',       cost: 0,      cpc: 1,   xpc: 1,  unlockLvl: 1 },
+  { id: 'iron',    name: 'Iron Shovel',          cost: 150,    cpc: 3,   xpc: 2,  unlockLvl: 3 },
+  { id: 'steel',   name: 'Steel Shovel',         cost: 800,    cpc: 8,   xpc: 5,  unlockLvl: 7 },
+  { id: 'diamond', name: 'Diamond Shovel',       cost: 5000,   cpc: 25,  xpc: 12, unlockLvl: 12 },
+  { id: 'ancient', name: 'Ancient Relic Shovel', cost: 50000,  cpc: 100, xpc: 40, unlockLvl: 20 },
+];
+
+const MINERS = [
+  { id: 'apprentice', name: 'Apprentice Miner',     baseCost: 50,     cps: 0.5,  xps: 0.3,  unlockLvl: 1 },
+  { id: 'skilled',    name: 'Skilled Miner',         baseCost: 350,    cps: 2.0,  xps: 1.0,  unlockLvl: 5 },
+  { id: 'expert',     name: 'Expert Miner',          baseCost: 2500,   cps: 8.0,  xps: 3.5,  unlockLvl: 10 },
+  { id: 'master',     name: 'Master Miner',          baseCost: 20000,  cps: 30.0, xps: 12.0, unlockLvl: 15 },
+  { id: 'legendary',  name: 'Legendary Prospector',  baseCost: 200000, cps: 150.0,xps: 50.0, unlockLvl: 25 },
+];
+
+const ACCESSORIES = [
+  { id: 'lucky',    name: 'Lucky Charm',    cost: 500,    bonus: 0.10, unlockLvl: 2 },
+  { id: 'map',      name: 'Treasure Map',   cost: 3000,   bonus: 0.20, unlockLvl: 6 },
+  { id: 'rod',      name: 'Dowsing Rod',    cost: 15000,  bonus: 0.35, unlockLvl: 11 },
+  { id: 'compass',  name: 'Ancient Compass',cost: 75000,  bonus: 0.60, unlockLvl: 18 },
+  { id: 'eye',      name: 'Dragon Eye',     cost: 500000, bonus: 1.50, unlockLvl: 30 },
+];
+
+const TREASURES = [
+  { id: 'dirt',     name: 'Dirt',             rarity: 'common',    icon: '🪨', xp: 1,   coins: 1,   unlockLvl: 1,  weight: 500 },
+  { id: 'stone',    name: 'Stone',            rarity: 'common',    icon: '🪨', xp: 1,   coins: 1,   unlockLvl: 1,  weight: 400 },
+  { id: 'coal',     name: 'Coal',             rarity: 'common',    icon: '⚫', xp: 2,   coins: 2,   unlockLvl: 1,  weight: 250 },
+  { id: 'iron',     name: 'Iron',             rarity: 'uncommon',  icon: '🔩', xp: 4,   coins: 3,   unlockLvl: 1,  weight: 150 },
+  { id: 'gold',     name: 'Gold Nugget',      rarity: 'uncommon',  icon: '🥇', xp: 6,   coins: 8,   unlockLvl: 3,  weight: 80  },
+  { id: 'ruby',     name: 'Ruby',             rarity: 'rare',      icon: '🔴', xp: 12,  coins: 20,  unlockLvl: 5,  weight: 35  },
+  { id: 'emerald',  name: 'Emerald',          rarity: 'rare',      icon: '💚', xp: 15,  coins: 25,  unlockLvl: 8,  weight: 25  },
+  { id: 'sapphire', name: 'Sapphire',         rarity: 'rare',      icon: '🔵', xp: 18,  coins: 30,  unlockLvl: 10, weight: 18  },
+  { id: 'diamond',  name: 'Diamond',          rarity: 'epic',      icon: '💎', xp: 35,  coins: 75,  unlockLvl: 14, weight: 8   },
+  { id: 'obsidian', name: 'Obsidian',         rarity: 'epic',      icon: '🖤', xp: 30,  coins: 60,  unlockLvl: 16, weight: 5   },
+  { id: 'artifact', name: 'Ancient Artifact', rarity: 'legendary', icon: '🏺', xp: 100, coins: 300, unlockLvl: 20, weight: 1   },
+];
+
+const RARITY_COLOR = {
+  common:    '#aaa',
+  uncommon:  '#57e389',
+  rare:      '#5dc8f5',
+  epic:      '#c061cb',
+  legendary: '#f5a623',
+};
+
+const LEVEL_TITLES = [
+  '', 'Novice Hunter', 'Dirt Digger', 'Stone Seeker', 'Iron Finder', 'Bronze Prospector',
+  'Silver Scout', 'Gold Gazer', 'Gem Hunter', 'Crystal Seeker', 'Cave Explorer',
+  'Deep Diver', 'Diamond Hunter', 'Relic Seeker', 'Lore Keeper', 'Master Miner',
+  'Ancient Seeker', 'Realm Digger', 'Legendary Finder', 'Mythic Prospector', 'Grandmaster',
+  'Titan Hunter', 'Cosmos Digger', 'Star Finder', 'Universe Seeker', 'Dragon Hunter',
+  'Void Walker', 'Abyss Delver', 'Elder Prospector', 'Immortal Hunter', 'God of Treasures',
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+
+let gs = {
+  coins: 0,
+  xp: 0,
+  level: 1,
+  totalDigs: 0,
+  currentShovel: 'wooden',
+  miners: {},
+  accessories: {},
+  inventory: {},
+  log: [],
+  lastSave: Date.now(),
+};
+
+let currentTab = 'shovels';
+let xpAccum = 0; // fractional XP accumulator for miners
+
+// ─────────────────────────────────────────────
+// FORMULAS
+// ─────────────────────────────────────────────
+
+function xpRequired(lvl) {
+  return Math.floor(lvl * 100 * Math.pow(1.15, lvl));
+}
+
+function globalMultiplier() {
+  let bonus = 0;
+  for (const acc of ACCESSORIES) {
+    if (gs.accessories[acc.id]) bonus += acc.bonus;
+  }
+  return 1 + bonus;
+}
+
+function getShovel() {
+  return SHOVELS.find(s => s.id === gs.currentShovel) || SHOVELS[0];
+}
+
+function coinsPerClick() {
+  return getShovel().cpc * globalMultiplier();
+}
+
+function xpPerClick() {
+  return getShovel().xpc;
+}
+
+function coinsPerSecond() {
+  let total = 0;
+  for (const m of MINERS) {
+    const count = gs.miners[m.id] || 0;
+    total += m.cps * count;
+  }
+  return total * globalMultiplier();
+}
+
+function xpPerSecond() {
+  let total = 0;
+  for (const m of MINERS) {
+    const count = gs.miners[m.id] || 0;
+    total += m.xps * count;
+  }
+  return total;
+}
+
+function minerCost(miner) {
+  const owned = gs.miners[miner.id] || 0;
+  return Math.floor(miner.baseCost * Math.pow(1.15, owned));
+}
+
+// ─────────────────────────────────────────────
+// TREASURE ROLL
+// ─────────────────────────────────────────────
+
+function rollTreasure() {
+  const available = TREASURES.filter(t => t.unlockLvl <= gs.level);
+  const totalWeight = available.reduce((s, t) => s + t.weight, 0);
+  let r = Math.random() * totalWeight;
+  for (const t of available) {
+    r -= t.weight;
+    if (r <= 0) return t;
+  }
+  return available[available.length - 1];
+}
+
+// ─────────────────────────────────────────────
+// DIG
+// ─────────────────────────────────────────────
+
+function dig(event) {
+  const btn = document.getElementById('dig-btn');
+  btn.classList.remove('shaking');
+  void btn.offsetWidth;
+  btn.classList.add('shaking');
+  btn.addEventListener('animationend', () => btn.classList.remove('shaking'), { once: true });
+
+  const mult = globalMultiplier();
+  const shovel = getShovel();
+  const earned = shovel.cpc * mult;
+  const earnedXP = shovel.xpc;
+
+  gs.coins += earned;
+  gs.totalDigs++;
+
+  const treasure = rollTreasure();
+  const tCoins = treasure.coins * mult;
+  const tXP = treasure.xp;
+
+  gs.coins += tCoins;
+  addXP(earnedXP + tXP);
+
+  // Inventory
+  gs.inventory[treasure.id] = (gs.inventory[treasure.id] || 0) + 1;
+
+  // Log
+  const entry = {
+    name: treasure.name,
+    rarity: treasure.rarity,
+    icon: treasure.icon,
+    coins: Math.floor(earned + tCoins),
+    xp: earnedXP + tXP,
+  };
+  gs.log.unshift(entry);
+  if (gs.log.length > 20) gs.log.pop();
+
+  // Floating text
+  if (event) spawnFloat(event.clientX, event.clientY, `+${fmt(Math.floor(earned + tCoins))} 🪙`);
+
+  // Particles
+  if (event) spawnParticles(event.clientX, event.clientY);
+
+  // Epic+ popup
+  if (treasure.rarity === 'epic' || treasure.rarity === 'legendary') {
+    showTreasurePopup(treasure);
+  }
+
+  renderAll();
+}
+
+function addXP(amount) {
+  gs.xp += amount;
+  checkLevelUp();
+}
+
+function checkLevelUp() {
+  while (true) {
+    const req = xpRequired(gs.level);
+    if (gs.xp >= req) {
+      gs.xp -= req;
+      gs.level++;
+      showLevelUp();
+    } else break;
+  }
+}
+
+// ─────────────────────────────────────────────
+// ANIMATIONS
+// ─────────────────────────────────────────────
+
+function spawnFloat(x, y, text) {
+  const el = document.createElement('div');
+  el.className = 'float-text';
+  el.textContent = text;
+  el.style.left = (x - 20) + 'px';
+  el.style.top = (y - 10) + 'px';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+function spawnParticles(x, y) {
+  const colors = ['#f5a623', '#e8c96a', '#fff', '#c061cb'];
+  for (let i = 0; i < 8; i++) {
+    const el = document.createElement('div');
+    el.className = 'particle';
+    const size = 4 + Math.random() * 6;
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 30 + Math.random() * 60;
+    el.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${x}px; top:${y}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      --tx:${Math.cos(angle)*dist}px;
+      --ty:${Math.sin(angle)*dist}px;
+    `;
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+}
+
+function showTreasurePopup(treasure) {
+  const old = document.getElementById('treasure-popup');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'treasure-popup';
+  el.innerHTML = `
+    <div class="popup-box ${treasure.rarity}">
+      <div class="pop-rarity" style="color:${RARITY_COLOR[treasure.rarity]}">${treasure.rarity.toUpperCase()} FIND!</div>
+      <div class="pop-icon">${treasure.icon}</div>
+      <div class="pop-name" style="color:${RARITY_COLOR[treasure.rarity]}">${treasure.name}</div>
+      <div class="pop-rewards">+${treasure.coins} coins &nbsp;·&nbsp; +${treasure.xp} XP</div>
+    </div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+function showLevelUp() {
+  const old = document.getElementById('levelup-banner');
+  if (old) old.remove();
+  const el = document.createElement('div');
+  el.id = 'levelup-banner';
+  const title = LEVEL_TITLES[Math.min(gs.level, LEVEL_TITLES.length - 1)] || `Level ${gs.level}`;
+  el.innerHTML = `<h2>LEVEL UP! ✨</h2><p>You are now <strong>${title}</strong> (Lvl ${gs.level})</p>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+// ─────────────────────────────────────────────
+// SHOP
+// ─────────────────────────────────────────────
+
+function switchTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.shop-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderShop();
+}
+
+function buyShovel(id) {
+  const shovel = SHOVELS.find(s => s.id === id);
+  if (!shovel) return;
+  if (gs.level < shovel.unlockLvl) return;
+  if (shovel.id === gs.currentShovel) return;
+  if (gs.coins < shovel.cost) return;
+  gs.coins -= shovel.cost;
+  gs.currentShovel = shovel.id;
+  renderAll();
+}
+
+function buyMiner(id) {
+  const miner = MINERS.find(m => m.id === id);
+  if (!miner) return;
+  if (gs.level < miner.unlockLvl) return;
+  const cost = minerCost(miner);
+  if (gs.coins < cost) return;
+  gs.coins -= cost;
+  gs.miners[miner.id] = (gs.miners[miner.id] || 0) + 1;
+  renderAll();
+}
+
+function buyAccessory(id) {
+  const acc = ACCESSORIES.find(a => a.id === id);
+  if (!acc) return;
+  if (gs.level < acc.unlockLvl) return;
+  if (gs.accessories[acc.id]) return;
+  if (gs.coins < acc.cost) return;
+  gs.coins -= acc.cost;
+  gs.accessories[acc.id] = true;
+  renderAll();
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+
+function fmt(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return Math.floor(n).toString();
+}
+
+function renderStats() {
+  document.getElementById('stat-coins').textContent = fmt(gs.coins);
+  document.getElementById('stat-cpc').textContent = fmt(coinsPerClick());
+  document.getElementById('stat-cps').textContent = fmt(coinsPerSecond()) + '/s';
+  document.getElementById('stat-digs').textContent = fmt(gs.totalDigs);
+  document.getElementById('mult-val').textContent = globalMultiplier().toFixed(2) + '×';
+
+  // Level badge
+  document.getElementById('lvl-num').textContent = gs.level;
+  const title = LEVEL_TITLES[Math.min(gs.level, LEVEL_TITLES.length - 1)] || `Level ${gs.level}`;
+  document.getElementById('lvl-title').textContent = title;
+  document.getElementById('lvl-sub').textContent = `Using: ${getShovel().name}`;
+
+  // XP bar
+  const req = xpRequired(gs.level);
+  const pct = Math.min(100, (gs.xp / req) * 100);
+  document.getElementById('xp-bar-fill').style.width = pct + '%';
+  document.getElementById('xp-text').textContent = `${fmt(gs.xp)} / ${fmt(req)}`;
+}
+
+function renderLog() {
+  const list = document.getElementById('log-list');
+  list.innerHTML = '';
+  for (const entry of gs.log) {
+    const div = document.createElement('div');
+    div.className = `log-entry ${entry.rarity}`;
+    div.innerHTML = `
+      <span style="color:${RARITY_COLOR[entry.rarity]}">${entry.icon} ${entry.name}</span>
+      <span class="log-rewards">+${entry.coins}🪙 +${entry.xp}XP</span>`;
+    list.appendChild(div);
+  }
+}
+
+function renderCollection() {
+  const grid = document.getElementById('collection-grid');
+  grid.innerHTML = '';
+  for (const t of TREASURES) {
+    const count = gs.inventory[t.id] || 0;
+    const found = count > 0;
+    const div = document.createElement('div');
+    div.className = 'coll-item' + (found ? '' : ' undiscovered');
+    div.title = found ? `${t.name} (×${count}) — ${t.rarity}` : '???';
+    div.innerHTML = `
+      <div class="coll-icon">${t.icon}</div>
+      <div class="coll-name" style="color:${found ? RARITY_COLOR[t.rarity] : 'inherit'}">${found ? t.name : '???'}</div>
+      ${found ? `<div class="coll-count">×${count}</div>` : ''}`;
+    grid.appendChild(div);
+  }
+}
+
+function renderShop() {
+  const container = document.getElementById('shop-content');
+  container.innerHTML = '';
+
+  if (currentTab === 'shovels') {
+    for (const s of SHOVELS) {
+      const locked = gs.level < s.unlockLvl;
+      const owned = gs.currentShovel === s.id;
+      const cantAfford = !owned && !locked && gs.coins < s.cost;
+      const div = document.createElement('div');
+      div.className = 'shop-item' + (locked ? ' locked' : '') + (cantAfford ? ' cant-afford' : '') + (owned ? ' owned-shovel' : '');
+      div.innerHTML = `
+        <div class="shop-item-header">
+          <span class="shop-item-name">${s.name}</span>
+          <span class="shop-item-cost">${owned ? '✓ Active' : s.cost === 0 ? 'FREE' : fmt(s.cost) + '🪙'}</span>
+        </div>
+        <div class="shop-item-desc">
+          ${locked ? `<span class="lock-icon">🔒 Unlock at level ${s.unlockLvl}</span>` : `+${s.cpc} coins/click · +${s.xpc} XP/click`}
+        </div>`;
+      if (!locked && !owned) div.onclick = () => buyShovel(s.id);
+      container.appendChild(div);
+    }
+  } else if (currentTab === 'miners') {
+    for (const m of MINERS) {
+      const locked = gs.level < m.unlockLvl;
+      const count = gs.miners[m.id] || 0;
+      const cost = minerCost(m);
+      const cantAfford = !locked && gs.coins < cost;
+      const div = document.createElement('div');
+      div.className = 'shop-item' + (locked ? ' locked' : '') + (cantAfford ? ' cant-afford' : '');
+      div.innerHTML = `
+        <div class="shop-item-header">
+          <span class="shop-item-name">${m.name}</span>
+          <span class="shop-item-cost">${locked ? '🔒' : fmt(cost) + '🪙'}</span>
+        </div>
+        <div class="shop-item-desc">
+          ${locked ? `Unlock at level ${m.unlockLvl}` : `${m.cps}/s coins · ${m.xps}/s XP`}
+        </div>
+        ${count > 0 ? `<div class="shop-item-count">×${count}</div>` : ''}`;
+      if (!locked) div.onclick = () => buyMiner(m.id);
+      container.appendChild(div);
+    }
+  } else if (currentTab === 'accessories') {
+    for (const a of ACCESSORIES) {
+      const locked = gs.level < a.unlockLvl;
+      const owned = !!gs.accessories[a.id];
+      const cantAfford = !locked && !owned && gs.coins < a.cost;
+      const div = document.createElement('div');
+      div.className = 'shop-item' + (locked ? ' locked' : '') + (cantAfford ? ' cant-afford' : '') + (owned ? ' owned-shovel' : '');
+      div.innerHTML = `
+        <div class="shop-item-header">
+          <span class="shop-item-name">${a.name}</span>
+          <span class="shop-item-cost">${owned ? '✓ Owned' : locked ? '🔒' : fmt(a.cost) + '🪙'}</span>
+        </div>
+        <div class="shop-item-desc">
+          ${locked ? `Unlock at level ${a.unlockLvl}` : `+${Math.round(a.bonus * 100)}% global bonus`}
+        </div>`;
+      if (!locked && !owned) div.onclick = () => buyAccessory(a.id);
+      container.appendChild(div);
+    }
+  }
+}
+
+function renderAll() {
+  renderStats();
+  renderLog();
+  renderCollection();
+  renderShop();
+}
+
+// ─────────────────────────────────────────────
+// AUTO TICK (100ms)
+// ─────────────────────────────────────────────
+
+let lastTick = Date.now();
+function tick() {
+  const now = Date.now();
+  const dt = (now - lastTick) / 1000;
+  lastTick = now;
+
+  const cps = coinsPerSecond();
+  const xps = xpPerSecond();
+
+  if (cps > 0 || xps > 0) {
+    gs.coins += cps * dt;
+    xpAccum += xps * dt;
+    if (xpAccum >= 1) {
+      const whole = Math.floor(xpAccum);
+      xpAccum -= whole;
+      addXP(whole);
+    }
+    renderStats();
+    // Don't re-render shop every tick — too expensive
+  }
+}
+setInterval(tick, 100);
+
+// ─────────────────────────────────────────────
+// SAVE / LOAD
+// ─────────────────────────────────────────────
+
+const SAVE_KEY = 'treasureHunterSave';
+
+function saveGame() {
+  gs.lastSave = Date.now();
+  localStorage.setItem(SAVE_KEY, JSON.stringify(gs));
+}
+
+function loadGame() {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (!raw) return;
+  try {
+    const saved = JSON.parse(raw);
+    // Deep merge known keys
+    const keys = ['coins','xp','level','totalDigs','currentShovel','miners','accessories','inventory','log','lastSave'];
+    for (const k of keys) {
+      if (saved[k] !== undefined) {
+        if (typeof saved[k] === 'object' && saved[k] !== null && !Array.isArray(saved[k])) {
+          gs[k] = Object.assign({}, gs[k], saved[k]);
+        } else {
+          gs[k] = saved[k];
+        }
+      }
+    }
+    if (Array.isArray(saved.log)) gs.log = saved.log;
+
+    // Offline earnings (cap 8h)
+    const offlineSec = Math.min((Date.now() - gs.lastSave) / 1000, 8 * 3600);
+    const cps = coinsPerSecond();
+    const xps = xpPerSecond();
+    if (offlineSec > 10 && (cps > 0 || xps > 0)) {
+      const earnedCoins = cps * offlineSec;
+      const earnedXP = xps * offlineSec;
+      gs.coins += earnedCoins;
+      if (earnedXP >= 1) addXP(Math.floor(earnedXP));
+
+      const notice = document.createElement('div');
+      notice.id = 'offline-notice';
+      notice.innerHTML = `⏰ Welcome back! Earned <strong>${fmt(earnedCoins)} coins</strong> while away (${Math.floor(offlineSec)}s).`;
+      document.body.appendChild(notice);
+      setTimeout(() => notice.remove(), 4000);
+    }
+  } catch(e) {
+    console.warn('Save load error', e);
+  }
+}
+
+function resetGame() {
+  if (!confirm('Reset all progress? This cannot be undone!')) return;
+  localStorage.removeItem(SAVE_KEY);
+  location.reload();
+}
+
+setInterval(saveGame, 10000);
+window.addEventListener('beforeunload', saveGame);
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+
+loadGame();
+renderAll();
+</script>
+</body>
+</html>
