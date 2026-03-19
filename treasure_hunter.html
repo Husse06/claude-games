@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mineral Depths</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    /* ── CSS VARIABLES ─────────────────────────────────────────────────────── */
     :root {
       --bg:         #0a0a0f;
       --surface:    #12121a;
@@ -27,106 +27,72 @@
       --green:      #3fb950;
       --red:        #f85149;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg); color: var(--text);
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
+      min-height: 100vh; overflow-x: hidden;
     }
-
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* ── SPARKLE LAYER ─────────────────────────────────────────────────────── */
-    #sparkle-layer {
-      position: fixed;
-      inset: 0;
+    /* ── CANVAS ───────────────────────────────────────────────────────── */
+    #particle-canvas {
+      position: fixed; inset: 0; z-index: 500;
       pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-    }
-    .sparkle {
-      position: absolute;
-      border-radius: 50%;
-      animation: sparkle-drift var(--dur, 4s) ease-out forwards;
-    }
-    @keyframes sparkle-drift {
-      0%   { transform: translateY(0) scale(1);       opacity: 0.7; }
-      100% { transform: translateY(-100vh) scale(0.3); opacity: 0;   }
     }
 
-    /* ── APP GRID ──────────────────────────────────────────────────────────── */
+    /* ── APP GRID ─────────────────────────────────────────────────────── */
     #app {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: 310px 1fr 295px;
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 310px 1fr 295px;
       grid-template-rows: auto 1fr;
-      min-height: 100vh;
-      max-width: 1450px;
-      margin: 0 auto;
+      min-height: 100vh; max-width: 1450px; margin: 0 auto;
     }
 
-    /* ── HEADER ────────────────────────────────────────────────────────────── */
+    /* ── HEADER ───────────────────────────────────────────────────────── */
     #header {
-      grid-column: 1 / -1;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 11px 20px;
-      background: rgba(10, 10, 15, 0.96);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(10px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      grid-column: 1 / -1; display: flex; align-items: center;
+      justify-content: space-between; padding: 11px 20px;
+      background: rgba(10,10,15,0.96); border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100;
     }
-    .hdr-left  { display: flex; align-items: center; gap: 11px; }
-    .hdr-icon  { font-size: 1.7rem; filter: drop-shadow(0 0 8px var(--purple)); }
+    .hdr-left { display: flex; align-items: center; gap: 11px; }
+    .hdr-icon { font-size: 1.7rem; color: var(--purple); filter: drop-shadow(0 0 8px var(--purple)); }
     .hdr-title { font-size: 1.2rem; font-weight: 800; letter-spacing: 0.1em; }
-    .hdr-sub   { font-size: 0.7rem; color: var(--muted); }
+    .hdr-sub { font-size: 0.7rem; color: var(--muted); }
     .hdr-right { display: flex; align-items: center; gap: 9px; }
     #save-indicator {
-      font-size: 0.72rem; color: var(--muted);
-      padding: 4px 10px; background: var(--surface);
-      border: 1px solid var(--border); border-radius: 20px;
+      font-size: 0.72rem; color: var(--muted); padding: 4px 10px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
     }
-    #reset-btn {
-      font-size: 0.72rem; color: var(--red);
-      background: transparent; border: 1px solid rgba(248,81,73,0.3);
-      border-radius: 20px; padding: 4px 10px; cursor: pointer;
-      transition: background 0.2s;
+    #mute-btn, #reset-btn {
+      font-size: 0.72rem; background: transparent; border-radius: 20px;
+      padding: 4px 10px; cursor: pointer; transition: background 0.2s;
+      border: 1px solid var(--border); color: var(--muted);
     }
+    #mute-btn:hover { background: rgba(155,89,255,0.1); }
+    #reset-btn { color: var(--red); border-color: rgba(248,81,73,0.3); }
     #reset-btn:hover { background: rgba(248,81,73,0.1); }
 
-    /* ── SHARED PANEL STYLES ───────────────────────────────────────────────── */
+    /* ── SHARED PANEL STYLES ──────────────────────────────────────────── */
     #left-panel, #center-panel, #right-panel {
-      background: rgba(18, 18, 26, 0.88);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      overflow-y: auto;
+      background: rgba(18,18,26,0.88); backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px); overflow-y: auto;
       max-height: calc(100vh - 52px);
     }
-    #left-panel   { border-right: 1px solid rgba(155,89,255,0.13); }
-    #center-panel { border-left:  1px solid rgba(57,255,20,0.07);
-                    border-right: 1px solid rgba(57,255,20,0.07); }
-    #right-panel  { border-left:  1px solid rgba(155,89,255,0.13); }
-
+    #left-panel { border-right: 1px solid rgba(155,89,255,0.13); }
+    #center-panel { border-left: 1px solid rgba(57,255,20,0.07); border-right: 1px solid rgba(57,255,20,0.07); }
+    #right-panel { border-left: 1px solid rgba(155,89,255,0.13); }
     .section-header {
-      font-size: 0.68rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.13em;
-      color: var(--muted); margin-bottom: 8px;
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.13em; color: var(--muted); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
     }
 
-    /* ── LEFT PANEL ────────────────────────────────────────────────────────── */
+    /* ── LEFT PANEL ───────────────────────────────────────────────────── */
     #left-panel { padding: 15px; display: flex; flex-direction: column; gap: 13px; }
-
-    /* Level badge */
     #level-badge { display: flex; align-items: center; gap: 11px; }
     .lvl-circle {
       width: 52px; height: 52px; border-radius: 50%;
@@ -138,23 +104,22 @@
     }
     @keyframes badge-pulse {
       0%,100% { box-shadow: 0 0 18px rgba(155,89,255,0.4); }
-      50%      { box-shadow: 0 0 30px rgba(155,89,255,0.7); }
+      50% { box-shadow: 0 0 30px rgba(155,89,255,0.7); }
     }
-    #lvl-num    { font-size: 1.25rem; font-weight: 900; color: var(--purple); line-height: 1; }
+    #lvl-num { font-size: 1.25rem; font-weight: 900; color: var(--purple); line-height: 1; }
     #lvl-suffix { font-size: 0.48rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; }
-    #lvl-title  { font-size: 0.88rem; font-weight: 700; }
-    #lvl-sub    { font-size: 0.68rem; color: var(--muted); margin-top: 1px; }
-
-    /* Currency strip */
+    #lvl-title { font-size: 0.88rem; font-weight: 700; }
+    #lvl-sub { font-size: 0.68rem; color: var(--muted); margin-top: 1px; }
     #currency-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
     .currency-box {
       background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 9px 11px;
-      display: flex; align-items: center; gap: 8px;
+      border-radius: 10px; padding: 9px 11px; display: flex; align-items: center; gap: 8px;
     }
     .currency-box.minerals-box { border-color: rgba(245,166,35,0.3); }
-    .currency-box.gems-box     { border-color: rgba(155,89,255,0.3); }
-    .curr-icon  { font-size: 1.35rem; }
+    .currency-box.gems-box { border-color: rgba(155,89,255,0.3); }
+    .curr-icon { font-size: 1.2rem; }
+    .curr-icon.gold { color: var(--accent); }
+    .curr-icon.purple { color: var(--purple); }
     .curr-label { font-size: 0.58rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
     .curr-value { font-size: 1rem; font-weight: 700; }
 
@@ -169,10 +134,9 @@
       background: conic-gradient(from 0deg, var(--purple), transparent 35%, var(--green-glow) 55%, transparent 80%, var(--purple));
       animation: ring-spin 7s linear infinite; opacity: 0.55;
       -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 4px));
-              mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 4px));
+      mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #fff calc(100% - 4px));
     }
     @keyframes ring-spin { to { transform: rotate(360deg); } }
-
     #vein-btn {
       width: 178px; height: 178px; border-radius: 50%;
       border: 2px solid rgba(155,89,255,0.55);
@@ -187,44 +151,51 @@
       box-shadow: 0 0 65px rgba(155,89,255,0.52), 0 0 130px rgba(155,89,255,0.16),
                   inset 0 0 40px rgba(155,89,255,0.13);
     }
-    .vein-icon  { font-size: 3rem; pointer-events: none; filter: drop-shadow(0 0 10px var(--purple)); }
+    .vein-icon { font-size: 3rem; pointer-events: none; filter: drop-shadow(0 0 10px var(--purple)); }
     .vein-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.22em; color: var(--purple); pointer-events: none; }
-
     @keyframes vein-squish {
-      0%   { transform: scale(1)    rotate(0deg);  }
+      0%   { transform: scale(1) rotate(0deg); }
       15%  { transform: scale(0.87) rotate(-3deg); }
-      42%  { transform: scale(1.07) rotate(2deg);  }
+      42%  { transform: scale(1.07) rotate(2deg); }
       68%  { transform: scale(0.97) rotate(-1deg); }
-      100% { transform: scale(1)    rotate(0deg);  }
+      100% { transform: scale(1) rotate(0deg); }
     }
     #vein-btn.squishing { animation: vein-squish 0.34s ease; }
 
     /* Pet orbit */
     #pet-layer { position: absolute; inset: 0; pointer-events: none; }
     .pet-float {
-      position: absolute; font-size: 1.45rem;
+      position: absolute; font-size: 1.3rem;
       top: 50%; left: 50%;
-      margin-top: -0.725rem; margin-left: -0.725rem;
+      margin-top: -0.65rem; margin-left: -0.65rem;
       animation: pet-orbit var(--orbit-dur, 6s) linear infinite;
       filter: drop-shadow(0 0 5px var(--purple));
     }
     @keyframes pet-orbit {
-      from { transform: rotate(0deg)   translateX(106px) rotate(0deg);   }
+      from { transform: rotate(0deg) translateX(106px) rotate(0deg); }
       to   { transform: rotate(360deg) translateX(106px) rotate(-360deg); }
     }
-
+    .pet-bob {
+      display: inline-block;
+      animation: pet-bob 2.5s ease-in-out infinite;
+      animation-delay: var(--bob-delay, 0s);
+    }
+    @keyframes pet-bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
     #vein-sub { text-align: center; font-size: 0.7rem; color: var(--muted); }
 
-    /* XP bar */
+    /* XP */
     #xp-container {
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 10px; padding: 9px 11px;
     }
-    .xp-row  { display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .xp-lbl  { font-size: 0.66rem; color: var(--muted); }
+    .xp-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .xp-lbl { font-size: 0.66rem; color: var(--muted); display: flex; align-items: center; gap: 4px; }
     #xp-text { font-size: 0.66rem; color: var(--purple); font-weight: 600; }
     #xp-bar-track { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.06); overflow: hidden; }
-    #xp-bar-fill  {
+    #xp-bar-fill {
       height: 100%; border-radius: 3px;
       background: linear-gradient(90deg, var(--purple-dim), var(--purple));
       transition: width 0.3s ease; position: relative; overflow: hidden;
@@ -234,10 +205,7 @@
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28) 50%, transparent);
       animation: xp-shimmer 2.2s linear infinite; background-size: 200% 100%;
     }
-    @keyframes xp-shimmer {
-      0%   { background-position: -200% 0; }
-      100% { background-position:  200% 0; }
-    }
+    @keyframes xp-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
     /* Mini stats */
     #mini-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
@@ -249,9 +217,28 @@
                   text-transform: uppercase; letter-spacing: 0.08em; }
     .mini-value { font-size: 0.8rem; font-weight: 700; }
 
-    /* ── CENTER PANEL ──────────────────────────────────────────────────────── */
-    #center-panel { display: flex; flex-direction: column; }
+    /* Core Shard / Prestige */
+    #prestige-section {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .prestige-header { font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+    .prestige-info { font-size: 0.72rem; color: var(--muted); }
+    .prestige-shards { font-size: 0.85rem; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+    .prestige-btn {
+      padding: 8px 14px; border-radius: 8px; border: 1px solid var(--accent);
+      background: rgba(245,166,35,0.1); color: var(--accent);
+      font-size: 0.76rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .prestige-btn:hover:not(:disabled) {
+      background: rgba(245,166,35,0.22); box-shadow: 0 0 14px rgba(245,166,35,0.3);
+    }
+    .prestige-btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
+    /* ── CENTER PANEL ─────────────────────────────────────────────────── */
+    #center-panel { display: flex; flex-direction: column; }
     .middle-tabs {
       display: flex; border-bottom: 1px solid var(--border);
       background: rgba(10,10,15,0.6); position: sticky; top: 0; z-index: 10; flex-shrink: 0;
@@ -262,15 +249,12 @@
       border-bottom: 2px solid transparent; letter-spacing: 0.05em;
       transition: color 0.2s, border-color 0.2s, background 0.2s;
     }
-    .middle-tab:hover  { color: var(--text); background: rgba(155,89,255,0.05); }
-    .middle-tab.active { color: var(--purple); border-bottom-color: var(--purple);
-                         background: rgba(155,89,255,0.07); }
-
+    .middle-tab:hover { color: var(--text); background: rgba(155,89,255,0.05); }
+    .middle-tab.active { color: var(--purple); border-bottom-color: var(--purple); background: rgba(155,89,255,0.07); }
     #middle-content { flex: 1; overflow-y: auto; padding: 15px; }
 
     /* Forge */
     .forge-desc { font-size: 0.78rem; color: var(--muted); margin-bottom: 15px; }
-
     .forge-item {
       background: var(--surface2); border: 1px solid var(--border);
       border-left: 3px solid var(--purple); border-radius: 10px;
@@ -282,30 +266,83 @@
       box-shadow: -3px 0 0 var(--green-glow), 0 0 18px rgba(57,255,20,0.07);
       transform: translateX(2px); background: rgba(57,255,20,0.03);
     }
-    .forge-item.locked      { opacity: 0.5; cursor: not-allowed; border-left-color: var(--border); }
+    .forge-item.locked { opacity: 0.5; cursor: not-allowed; border-left-color: var(--border); }
     .forge-item.cant-afford { opacity: 0.75; cursor: not-allowed; border-left-color: var(--red); }
-    .forge-item.maxed       { border-left-color: var(--accent); background: rgba(245,166,35,0.05); cursor: default; }
+    .forge-item.maxed { border-left-color: var(--accent); background: rgba(245,166,35,0.05); cursor: default; }
     .fi-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-    .fi-name   { font-size: 0.9rem; font-weight: 700; }
+    .fi-name { font-size: 0.9rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
     .fi-lvlbadge {
       font-size: 0.63rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
       background: rgba(155,89,255,0.14); color: var(--purple); border: 1px solid rgba(155,89,255,0.28);
     }
     .fi-lvlbadge.maxed { background: rgba(245,166,35,0.14); color: var(--accent); border-color: rgba(245,166,35,0.28); }
-    .fi-desc   { font-size: 0.73rem; color: var(--muted); margin-bottom: 7px; }
-    .fi-bars   { display: flex; gap: 4px; margin-bottom: 7px; }
-    .fi-bar    { height: 4px; flex: 1; border-radius: 2px; background: var(--border); }
-    .fi-bar.filled       { background: var(--purple); }
+    .fi-desc { font-size: 0.73rem; color: var(--muted); margin-bottom: 7px; }
+    .fi-bars { display: flex; gap: 4px; margin-bottom: 7px; }
+    .fi-bar { height: 4px; flex: 1; border-radius: 2px; background: var(--border); }
+    .fi-bar.filled { background: var(--purple); }
     .fi-bar.filled.maxed { background: var(--accent); }
     .fi-footer { display: flex; justify-content: space-between; align-items: center; }
     .fi-effect { font-size: 0.7rem; color: var(--green); }
-    .fi-cost   { font-size: 0.78rem; font-weight: 700; color: var(--accent); }
+    .fi-cost { font-size: 0.78rem; font-weight: 700; color: var(--accent); }
     .fi-cost.cant { color: var(--red); }
 
-    /* Geode lab */
-    .lab-intro     { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+    /* Miners */
+    .mine-shaft {
+      background: linear-gradient(180deg, rgba(10,10,15,0.95), rgba(14,8,24,0.95));
+      border: 1px solid var(--border); border-radius: 12px;
+      height: 110px; overflow: hidden; position: relative; margin-bottom: 14px;
+    }
+    .mine-shaft::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 18px;
+      background: linear-gradient(0deg, rgba(42,42,64,0.5), transparent);
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .shaft-miner {
+      position: absolute; bottom: 22px; font-size: 1.1rem; opacity: 0.85;
+      animation: miner-walk var(--dur, 8s) linear infinite;
+      animation-delay: var(--delay, 0s);
+    }
+    .shaft-miner i {
+      display: inline-block;
+      animation: miner-swing 1.2s ease-in-out infinite;
+    }
+    @keyframes miner-walk {
+      0%, 100% { transform: translateX(0) scaleX(1); }
+      48% { transform: translateX(var(--walk, 120px)) scaleX(1); }
+      50% { transform: translateX(var(--walk, 120px)) scaleX(-1); }
+      98% { transform: translateX(0) scaleX(-1); }
+    }
+    @keyframes miner-swing {
+      0%, 60%, 100% { transform: rotate(0deg); }
+      30% { transform: rotate(-20deg); }
+    }
+    .shaft-empty { position: absolute; inset: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 0.75rem; color: var(--muted); }
+    .miner-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 13px; margin-bottom: 9px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .mc-icon { font-size: 1.6rem; flex-shrink: 0; width: 36px; text-align: center; }
+    .mc-info { flex: 1; }
+    .mc-name { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
+    .mc-desc { font-size: 0.7rem; color: var(--muted); }
+    .mc-owned { font-size: 0.66rem; color: var(--purple); margin-top: 3px; }
+    .mc-buy-btn {
+      padding: 8px 14px; border-radius: 8px; flex-shrink: 0;
+      border: 1px solid var(--accent); background: rgba(245,166,35,0.1);
+      color: var(--accent); font-size: 0.76rem; font-weight: 700; cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .mc-buy-btn:hover:not(:disabled) {
+      background: rgba(245,166,35,0.22); box-shadow: 0 0 12px rgba(245,166,35,0.3);
+    }
+    .mc-buy-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+    /* Geodes */
+    .lab-intro { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
     .lab-sec-title { font-size: 0.67rem; color: var(--muted); text-transform: uppercase;
-                     letter-spacing: 0.11em; font-weight: 700; margin-bottom: 7px; }
+      letter-spacing: 0.11em; font-weight: 700; margin-bottom: 7px; margin-top: 14px; }
     .geode-item {
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 12px; padding: 14px; margin-bottom: 9px;
@@ -315,83 +352,91 @@
     .geode-item.epic { border-color: rgba(192,97,203,0.46); animation: epic-pulse 2.2s ease-in-out infinite; }
     @keyframes epic-pulse {
       0%,100% { box-shadow: 0 0 14px rgba(192,97,203,0.25); }
-      50%      { box-shadow: 0 0 30px rgba(192,97,203,0.55); }
+      50% { box-shadow: 0 0 30px rgba(192,97,203,0.55); }
     }
-    .geode-emoji { font-size: 2.1rem; flex-shrink: 0; }
-    .geode-info  { flex: 1; }
-    .geode-name  { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
+    .geode-icon { font-size: 1.8rem; flex-shrink: 0; width: 36px; text-align: center; }
+    .geode-info { flex: 1; }
+    .geode-name { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
     .geode-count { font-size: 0.72rem; color: var(--muted); margin-bottom: 5px; }
-    .geode-hint  { font-size: 0.66rem; color: var(--muted); font-style: italic; }
-    .geode-crack-btn {
+    .geode-hint { font-size: 0.66rem; color: var(--muted); font-style: italic; }
+    .geode-crack-btn, .geode-buy-btn {
       padding: 8px 16px; border-radius: 8px;
       border: 1px solid var(--purple); background: rgba(155,89,255,0.1);
       color: var(--purple); font-size: 0.76rem; font-weight: 700;
       cursor: pointer; flex-shrink: 0;
       transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
     }
-    .geode-crack-btn:hover:not(:disabled) {
+    .geode-crack-btn:hover:not(:disabled), .geode-buy-btn:hover:not(:disabled) {
       background: rgba(155,89,255,0.22); box-shadow: 0 0 14px rgba(155,89,255,0.3);
       transform: scale(1.05);
     }
-    .geode-crack-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+    .geode-crack-btn:disabled, .geode-buy-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+    .geode-buy-btn { border-color: var(--accent); background: rgba(245,166,35,0.1); color: var(--accent); }
+    .geode-buy-btn:hover:not(:disabled) {
+      background: rgba(245,166,35,0.22); box-shadow: 0 0 12px rgba(245,166,35,0.3);
+    }
 
-    /* Pets panel */
+    /* Pets */
     .pets-intro { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
     .pet-card {
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 12px; padding: 13px; margin-bottom: 9px;
       display: flex; gap: 12px; align-items: flex-start;
     }
-    .pet-card.owned  { border-color: rgba(155,89,255,0.48); background: rgba(155,89,255,0.05); }
+    .pet-card.owned { border-color: rgba(155,89,255,0.48); background: rgba(155,89,255,0.05); }
     .pet-card.locked { opacity: 0.5; }
-    .pc-icon { font-size: 1.9rem; flex-shrink: 0; }
+    .pc-icon { font-size: 1.6rem; flex-shrink: 0; width: 36px; text-align: center; }
     .pet-card.owned .pc-icon { filter: drop-shadow(0 0 7px var(--purple)); }
     .pc-info { flex: 1; }
     .pc-name { font-size: 0.88rem; font-weight: 700; margin-bottom: 3px; }
-    .pc-desc { font-size: 0.73rem; color: var(--muted); margin-bottom: 7px; }
-    .pc-footer { display: flex; justify-content: space-between; align-items: center; }
+    .pc-desc { font-size: 0.73rem; color: var(--muted); margin-bottom: 4px; }
+    .pc-bonus { font-size: 0.7rem; color: var(--green); margin-bottom: 4px; }
+    .pc-lvl { font-size: 0.66rem; color: var(--purple); margin-bottom: 5px; }
+    .pc-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
     .pc-status { font-size: 0.7rem; font-weight: 700; }
-    .pc-status.ok  { color: var(--green); }
+    .pc-status.ok { color: var(--green); }
     .pc-status.dim { color: var(--muted); }
-    .pc-status.bad { color: var(--red);   }
-    .pet-unlock-btn {
-      padding: 6px 13px; border-radius: 8px;
-      border: 1px solid var(--gem-color); background: rgba(155,89,255,0.1);
-      color: var(--gem-color); font-size: 0.73rem; font-weight: 700;
-      cursor: pointer; transition: background 0.15s, box-shadow 0.15s;
-    }
-    .pet-unlock-btn:hover:not(:disabled) {
-      background: rgba(155,89,255,0.22); box-shadow: 0 0 12px rgba(155,89,255,0.3);
-    }
-    .pet-unlock-btn:disabled { opacity: 0.38; cursor: not-allowed; }
-
-    /* Prospector */
-    .prosp-intro { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
-    .prosp-item {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 12px; padding: 13px; margin-bottom: 9px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .prosp-item.rare { border-color: rgba(93,200,245,0.3); }
-    .prosp-item.epic { border-color: rgba(192,97,203,0.38); }
-    .prosp-emoji { font-size: 1.9rem; flex-shrink: 0; }
-    .prosp-info  { flex: 1; }
-    .prosp-name  { font-size: 0.88rem; font-weight: 700; margin-bottom: 2px; }
-    .prosp-hint  { font-size: 0.7rem; color: var(--muted); }
-    .prosp-buy-btn {
-      padding: 8px 14px; border-radius: 8px; flex-shrink: 0;
-      border: 1px solid var(--accent); background: rgba(245,166,35,0.1);
-      color: var(--accent); font-size: 0.76rem; font-weight: 700; cursor: pointer;
+    .pc-status.bad { color: var(--red); }
+    .pet-unlock-btn, .pet-feed-btn {
+      padding: 6px 13px; border-radius: 8px; border: 1px solid var(--gem-color);
+      background: rgba(155,89,255,0.1); color: var(--gem-color);
+      font-size: 0.73rem; font-weight: 700; cursor: pointer;
       transition: background 0.15s, box-shadow 0.15s;
     }
-    .prosp-buy-btn:hover:not(:disabled) {
+    .pet-unlock-btn:hover:not(:disabled), .pet-feed-btn:hover:not(:disabled) {
+      background: rgba(155,89,255,0.22); box-shadow: 0 0 12px rgba(155,89,255,0.3);
+    }
+    .pet-unlock-btn:disabled, .pet-feed-btn:disabled { opacity: 0.38; cursor: not-allowed; }
+    .pet-feed-btn { border-color: var(--accent); background: rgba(245,166,35,0.1); color: var(--accent); }
+    .pet-feed-btn:hover:not(:disabled) {
       background: rgba(245,166,35,0.22); box-shadow: 0 0 12px rgba(245,166,35,0.3);
     }
-    .prosp-buy-btn:disabled { opacity: 0.38; cursor: not-allowed; }
 
-    /* ── RIGHT PANEL ───────────────────────────────────────────────────────── */
+    /* Milestones */
+    .goals-intro { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; }
+    .milestone-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px; margin-bottom: 8px;
+    }
+    .milestone-card.complete { border-color: rgba(63,185,80,0.4); }
+    .milestone-card.claimed { border-color: rgba(245,166,35,0.3); opacity: 0.7; }
+    .ms-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .ms-name { font-size: 0.82rem; font-weight: 700; }
+    .ms-reward { font-size: 0.7rem; color: var(--purple); font-weight: 600; }
+    .ms-desc { font-size: 0.7rem; color: var(--muted); margin-bottom: 6px; }
+    .ms-bar-track { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.06); overflow: hidden; margin-bottom: 4px; }
+    .ms-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--purple-dim), var(--purple)); transition: width 0.3s; }
+    .ms-bar-fill.done { background: linear-gradient(90deg, var(--green), #57e389); }
+    .ms-progress { font-size: 0.63rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+    .ms-claim-btn {
+      padding: 4px 12px; border-radius: 6px; border: 1px solid var(--green);
+      background: rgba(63,185,80,0.15); color: var(--green);
+      font-size: 0.68rem; font-weight: 700; cursor: pointer; transition: background 0.15s;
+    }
+    .ms-claim-btn:hover { background: rgba(63,185,80,0.3); }
+
+    /* ── RIGHT PANEL ──────────────────────────────────────────────────── */
     #right-panel { padding: 13px; display: flex; flex-direction: column; gap: 11px; }
-
     #stats-detail {
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 10px; padding: 11px;
@@ -402,59 +447,47 @@
     }
     .stat-row:last-child { border-bottom: none; }
     .sr-label { font-size: 0.71rem; color: var(--muted); }
-    .sr-val   { font-size: 0.76rem; font-weight: 600; }
-
+    .sr-val { font-size: 0.76rem; font-weight: 600; }
     #relics-grid { display: flex; flex-direction: column; gap: 6px; }
     .relic-card {
       background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 9px 11px;
-      display: flex; gap: 9px; align-items: flex-start;
+      border-radius: 10px; padding: 9px 11px; display: flex; gap: 9px; align-items: flex-start;
     }
-    .relic-card.owned          { border-color: rgba(155,89,255,0.42); background: rgba(155,89,255,0.05); }
-    .relic-card.owned.epic     { border-color: rgba(192,97,203,0.48); }
-    .relic-card.owned.legendary {
-      border-color: var(--legendary);
-      animation: legendary-glow 2.5s ease-in-out infinite;
-    }
+    .relic-card.owned { border-color: rgba(155,89,255,0.42); background: rgba(155,89,255,0.05); }
+    .relic-card.owned.epic { border-color: rgba(192,97,203,0.48); }
+    .relic-card.owned.legendary { border-color: var(--legendary); animation: legendary-glow 2.5s ease-in-out infinite; }
     @keyframes legendary-glow {
       0%,100% { box-shadow: 0 0 8px rgba(245,166,35,0.2); }
-      50%      { box-shadow: 0 0 22px rgba(245,166,35,0.55); }
+      50% { box-shadow: 0 0 22px rgba(245,166,35,0.55); }
     }
-    .relic-icon { font-size: 1.55rem; flex-shrink: 0; }
-    .relic-card.owned .relic-icon            { filter: drop-shadow(0 0 6px var(--purple)); }
-    .relic-card.owned.legendary .relic-icon  { filter: drop-shadow(0 0 8px var(--legendary)); }
-    .relic-info   { flex: 1; min-width: 0; }
-    .relic-name   { font-size: 0.78rem; font-weight: 700; margin-bottom: 1px; }
-    .relic-rarity { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.11em;
-                    font-weight: 700; margin-bottom: 2px; }
-    .relic-desc   { font-size: 0.66rem; color: var(--muted); }
+    .relic-icon { font-size: 1.35rem; flex-shrink: 0; width: 28px; text-align: center; }
+    .relic-card.owned .relic-icon { filter: drop-shadow(0 0 6px var(--purple)); }
+    .relic-card.owned.legendary .relic-icon { filter: drop-shadow(0 0 8px var(--legendary)); }
+    .relic-info { flex: 1; min-width: 0; }
+    .relic-name { font-size: 0.78rem; font-weight: 700; margin-bottom: 1px; }
+    .relic-rarity { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.11em; font-weight: 700; margin-bottom: 2px; }
+    .relic-desc { font-size: 0.66rem; color: var(--muted); }
     .relic-card.relic-unknown { opacity: 0.42; }
 
-    #log-list {
-      display: flex; flex-direction: column; gap: 4px;
-      max-height: 260px; overflow-y: auto;
-    }
+    #log-list { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; }
     .log-entry {
       background: var(--surface2); border-left: 3px solid var(--border);
-      border-radius: 0 6px 6px 0; padding: 6px 9px;
-      font-size: 0.7rem; display: flex; justify-content: space-between; align-items: center;
+      border-radius: 0 6px 6px 0; padding: 6px 9px; font-size: 0.7rem;
+      display: flex; justify-content: space-between; align-items: center;
       animation: log-slide 0.3s ease;
     }
-    @keyframes log-slide {
-      from { opacity: 0; transform: translateX(8px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    .log-entry.common    { border-left-color: var(--common);    }
-    .log-entry.uncommon  { border-left-color: var(--uncommon);  }
-    .log-entry.rare      { border-left-color: var(--rare);      }
-    .log-entry.epic      { border-left-color: var(--epic);      }
+    @keyframes log-slide { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
+    .log-entry.common { border-left-color: var(--common); }
+    .log-entry.uncommon { border-left-color: var(--uncommon); }
+    .log-entry.rare { border-left-color: var(--rare); }
+    .log-entry.epic { border-left-color: var(--epic); }
     .log-entry.legendary { border-left-color: var(--legendary); }
-    .log-left    { display: flex; align-items: center; gap: 5px; }
-    .log-icon    { font-size: 0.95rem; }
-    .log-name    { font-weight: 500; }
+    .log-left { display: flex; align-items: center; gap: 5px; }
+    .log-icon { font-size: 0.95rem; }
+    .log-name { font-weight: 500; }
     .log-rewards { font-size: 0.63rem; color: var(--muted); text-align: right; }
 
-    /* ── OVERLAYS ──────────────────────────────────────────────────────────── */
+    /* ── OVERLAYS ─────────────────────────────────────────────────────── */
     #crack-popup {
       display: none; position: fixed; inset: 0; z-index: 1000;
       background: rgba(0,0,0,0.62); backdrop-filter: blur(5px);
@@ -468,17 +501,13 @@
       animation: popup-bounce 0.38s cubic-bezier(0.175,0.885,0.32,1.275);
       max-width: 320px;
     }
-    @keyframes popup-bounce {
-      from { transform: scale(0.65); opacity: 0; }
-      to   { transform: scale(1);    opacity: 1; }
-    }
-    .crack-box.rare      { border-color: var(--rare);      box-shadow: 0 0 40px rgba(93,200,245,0.3); }
-    .crack-box.epic      { border-color: var(--epic);      box-shadow: 0 0 40px rgba(192,97,203,0.4); }
+    @keyframes popup-bounce { from { transform: scale(0.65); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .crack-box.rare { border-color: var(--rare); box-shadow: 0 0 40px rgba(93,200,245,0.3); }
+    .crack-box.epic { border-color: var(--epic); box-shadow: 0 0 40px rgba(192,97,203,0.4); }
     .crack-box.legendary { border-color: var(--legendary); box-shadow: 0 0 60px rgba(245,166,35,0.5); }
-    .crack-rarity { font-size: 0.63rem; font-weight: 700; text-transform: uppercase;
-                    letter-spacing: 0.17em; margin-bottom: 9px; }
-    .crack-icon   { font-size: 3.8rem; margin-bottom: 9px; }
-    .crack-name   { font-size: 1.05rem; font-weight: 800; margin-bottom: 5px; }
+    .crack-rarity { font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.17em; margin-bottom: 9px; }
+    .crack-icon { font-size: 3.2rem; margin-bottom: 9px; }
+    .crack-name { font-size: 1.05rem; font-weight: 800; margin-bottom: 5px; }
     .crack-reward { font-size: 0.8rem; color: var(--muted); }
 
     #levelup-banner {
@@ -486,12 +515,7 @@
       pointer-events: none; align-items: center; justify-content: center;
     }
     #levelup-banner.show { display: flex; animation: banner-fade 2.2s ease forwards; }
-    @keyframes banner-fade {
-      0%   { opacity: 0; }
-      14%  { opacity: 1; }
-      75%  { opacity: 1; }
-      100% { opacity: 0; }
-    }
+    @keyframes banner-fade { 0% { opacity: 0; } 14% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
     .lvlup-box {
       background: linear-gradient(135deg, rgba(155,89,255,0.22), rgba(57,255,20,0.09));
       border: 2px solid var(--purple); border-radius: 20px; padding: 28px 58px;
@@ -499,82 +523,64 @@
       box-shadow: 0 0 60px rgba(155,89,255,0.4);
     }
     .lvlup-title { font-size: 1.9rem; font-weight: 900; color: var(--purple); margin-bottom: 4px; }
-    .lvlup-sub   { font-size: 0.95rem; }
+    .lvlup-sub { font-size: 0.95rem; }
 
-    /* Floating text & particles */
     .float-text {
-      position: fixed; pointer-events: none;
-      font-size: 1rem; font-weight: 800;
+      position: fixed; pointer-events: none; font-size: 1rem; font-weight: 800;
       text-shadow: 0 2px 6px rgba(0,0,0,0.9);
       animation: float-up 1.3s ease forwards; z-index: 800;
     }
     @keyframes float-up {
-      0%   { transform: translateY(0) scale(1);       opacity: 1; }
+      0%   { transform: translateY(0) scale(1); opacity: 1; }
       50%  { transform: translateY(-42px) scale(1.2); opacity: 1; }
       100% { transform: translateY(-85px) scale(0.8); opacity: 0; }
     }
-    .particle {
-      position: fixed; pointer-events: none; border-radius: 50%;
-      animation: ptcl var(--dur, 0.8s) ease forwards; z-index: 800;
-    }
-    @keyframes ptcl {
-      0%   { transform: translate(0,0) scale(1) rotate(0deg); opacity: 1; }
-      100% { transform: translate(var(--tx,0),var(--ty,-60px)) scale(0) rotate(var(--rot,180deg)); opacity: 0; }
-    }
-
-    /* Offline notice */
     #offline-notice {
-      display: none; position: fixed; bottom: 20px; left: 50%;
-      transform: translateX(-50%); z-index: 600;
-      background: rgba(18,18,26,0.96); border: 1px solid var(--purple);
+      display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 600; background: rgba(18,18,26,0.96); border: 1px solid var(--purple);
       border-radius: 12px; padding: 11px 22px; font-size: 0.8rem;
       backdrop-filter: blur(10px); box-shadow: 0 0 20px rgba(155,89,255,0.3);
-      max-width: 420px; text-align: center;
-      animation: notice-in 0.3s ease;
+      max-width: 420px; text-align: center; animation: notice-in 0.3s ease;
     }
     #offline-notice.show { display: block; }
     @keyframes notice-in {
       from { transform: translateX(-50%) translateY(16px); opacity: 0; }
-      to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+      to { transform: translateX(-50%) translateY(0); opacity: 1; }
     }
 
-    /* ── RESPONSIVE ────────────────────────────────────────────────────────── */
     @media (max-width: 920px) {
       #app { grid-template-columns: 1fr; }
       #header { grid-column: 1; }
       #left-panel, #center-panel, #right-panel {
         max-height: none; overflow-y: visible;
-        border-right: none; border-left: none; border-bottom: 1px solid var(--border);
+        border: none; border-bottom: 1px solid var(--border);
       }
       #vein-wrap { width: 178px; height: 178px; }
-      #vein-btn  { width: 160px; height: 160px; }
+      #vein-btn { width: 160px; height: 160px; }
     }
   </style>
 </head>
 <body>
 
-<div id="sparkle-layer"></div>
+<canvas id="particle-canvas"></canvas>
 
 <div id="app">
-
-  <!-- ─── HEADER ─────────────────────────────────────────────────────────── -->
   <header id="header">
     <div class="hdr-left">
-      <span class="hdr-icon">💎</span>
+      <span class="hdr-icon"><i class="fa-solid fa-gem"></i></span>
       <div>
         <div class="hdr-title">MINERAL DEPTHS</div>
         <div class="hdr-sub">Deep Cave Mining Adventure</div>
       </div>
     </div>
     <div class="hdr-right">
-      <span id="save-indicator">💾 Auto-saves</span>
-      <button id="reset-btn" onclick="resetGame()">🗑 Reset</button>
+      <span id="save-indicator"><i class="fa-solid fa-floppy-disk"></i> Auto-saves</span>
+      <button id="mute-btn" onclick="toggleMute()"><i class="fa-solid fa-volume-high"></i></button>
+      <button id="reset-btn" onclick="resetGame()"><i class="fa-solid fa-trash-can"></i> Reset</button>
     </div>
   </header>
 
-  <!-- ─── LEFT PANEL ──────────────────────────────────────────────────────── -->
   <aside id="left-panel">
-
     <div id="level-badge">
       <div class="lvl-circle">
         <span id="lvl-num">1</span>
@@ -588,14 +594,14 @@
 
     <div id="currency-strip">
       <div class="currency-box minerals-box">
-        <span class="curr-icon">🪨</span>
+        <span class="curr-icon gold"><i class="fa-solid fa-mountain"></i></span>
         <div>
           <div class="curr-label">Minerals</div>
           <div class="curr-value" id="stat-minerals">0</div>
         </div>
       </div>
       <div class="currency-box gems-box">
-        <span class="curr-icon">💜</span>
+        <span class="curr-icon purple"><i class="fa-solid fa-diamond"></i></span>
         <div>
           <div class="curr-label">Gems</div>
           <div class="curr-value" id="stat-gems">0</div>
@@ -606,22 +612,20 @@
     <div id="vein-wrap">
       <div class="vein-ring"></div>
       <button id="vein-btn" onclick="clickVein(event)">
-        <span class="vein-icon">💎</span>
+        <span class="vein-icon"><i class="fa-solid fa-gem"></i></span>
         <span class="vein-label">MINE</span>
       </button>
       <div id="pet-layer"></div>
     </div>
 
-    <div id="vein-sub">⛏️ Click the Resource Vein!</div>
+    <div id="vein-sub"><i class="fa-solid fa-hammer"></i> Click the Resource Vein!</div>
 
     <div id="xp-container">
       <div class="xp-row">
-        <span class="xp-lbl">⭐ Experience</span>
+        <span class="xp-lbl"><i class="fa-solid fa-star"></i> Experience</span>
         <span id="xp-text">0 / 115 XP</span>
       </div>
-      <div id="xp-bar-track">
-        <div id="xp-bar-fill" style="width:0%"></div>
-      </div>
+      <div id="xp-bar-track"><div id="xp-bar-fill" style="width:0%"></div></div>
     </div>
 
     <div id="mini-stats">
@@ -639,48 +643,43 @@
       </div>
     </div>
 
+    <div id="prestige-section"></div>
   </aside>
 
-  <!-- ─── CENTER PANEL ─────────────────────────────────────────────────────── -->
   <main id="center-panel">
     <div class="middle-tabs">
-      <button class="middle-tab active" onclick="switchTab('forge',this)">⚒️ Forge</button>
-      <button class="middle-tab" onclick="switchTab('geodes',this)">🪨 Geodes</button>
-      <button class="middle-tab" onclick="switchTab('pets',this)">🐾 Pets</button>
-      <button class="middle-tab" onclick="switchTab('prospector',this)">🏪 Shop</button>
+      <button class="middle-tab active" onclick="switchTab('forge',this)"><i class="fa-solid fa-hammer"></i> Forge</button>
+      <button class="middle-tab" onclick="switchTab('miners',this)"><i class="fa-solid fa-person-digging"></i> Miners</button>
+      <button class="middle-tab" onclick="switchTab('geodes',this)"><i class="fa-solid fa-cube"></i> Geodes</button>
+      <button class="middle-tab" onclick="switchTab('pets',this)"><i class="fa-solid fa-paw"></i> Pets</button>
+      <button class="middle-tab" onclick="switchTab('goals',this)"><i class="fa-solid fa-flag-checkered"></i> Goals</button>
     </div>
     <div id="middle-content"></div>
   </main>
 
-  <!-- ─── RIGHT PANEL ──────────────────────────────────────────────────────── -->
   <aside id="right-panel">
-    <div class="section-header">📊 Statistics</div>
+    <div class="section-header"><i class="fa-solid fa-chart-simple"></i> Statistics</div>
     <div id="stats-detail"></div>
-
-    <div class="section-header">🗿 Relics</div>
+    <div class="section-header"><i class="fa-solid fa-trophy"></i> Relics</div>
     <div id="relics-grid"></div>
-
-    <div class="section-header">📜 Discovery Log</div>
+    <div class="section-header"><i class="fa-solid fa-scroll"></i> Discovery Log</div>
     <div id="log-list"></div>
   </aside>
+</div>
 
-</div><!-- #app -->
-
-<!-- Geode crack result popup -->
 <div id="crack-popup">
   <div class="crack-box" id="crack-box">
     <div class="crack-rarity" id="crack-rarity">RARE</div>
-    <div class="crack-icon"   id="crack-icon">💎</div>
-    <div class="crack-name"   id="crack-name">Rich Vein</div>
+    <div class="crack-icon" id="crack-icon"><i class="fa-solid fa-gem"></i></div>
+    <div class="crack-name" id="crack-name">Rich Vein</div>
     <div class="crack-reward" id="crack-reward">+500 minerals</div>
   </div>
 </div>
 
-<!-- Level-up banner -->
 <div id="levelup-banner">
   <div class="lvlup-box">
-    <div class="lvlup-title" id="lvlup-title">LEVEL UP! 🎉</div>
-    <div class="lvlup-sub"   id="lvlup-sub">You are now level 2</div>
+    <div class="lvlup-title" id="lvlup-title">LEVEL UP!</div>
+    <div class="lvlup-sub" id="lvlup-sub">You are now level 2</div>
   </div>
 </div>
 
@@ -690,19 +689,160 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════════
+//  ICON HELPER
+// ═══════════════════════════════════════════════════════════════════
+const ic = (name, cls='') => `<i class="fa-solid fa-${name}${cls?' '+cls:''}"></i>`;
+
+// ═══════════════════════════════════════════════════════════════════
+//  AUDIO MANAGER
+// ═══════════════════════════════════════════════════════════════════
+class AudioManager {
+  constructor() {
+    this.muted = false;
+    this.ctx = null;
+    // Sound file paths — fill these with your own audio files
+    this.paths = {
+      pickaxe_hit:        'sounds/pickaxe_hit.mp3',
+      geode_crack_common: 'sounds/geode_crack_common.mp3',
+      geode_crack_rare:   'sounds/geode_crack_rare.mp3',
+      geode_crack_epic:   'sounds/geode_crack_epic.mp3',
+      purchase_upgrade:   'sounds/purchase_upgrade.mp3',
+      ambient_cave_loop:  'sounds/ambient_cave_loop.mp3',
+    };
+    this.cache = {};
+  }
+  init() {
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  play(name) {
+    if (this.muted || !this.ctx) return;
+    const path = this.paths[name];
+    if (!path) return;
+    // Load and play — gracefully fail if file missing
+    if (this.cache[name]) {
+      const src = this.ctx.createBufferSource();
+      src.buffer = this.cache[name];
+      src.connect(this.ctx.destination);
+      src.start(0);
+      return;
+    }
+    fetch(path).then(r => r.arrayBuffer()).then(buf => {
+      this.ctx.decodeAudioData(buf, decoded => {
+        this.cache[name] = decoded;
+        const src = this.ctx.createBufferSource();
+        src.buffer = decoded;
+        src.connect(this.ctx.destination);
+        src.start(0);
+      });
+    }).catch(() => {}); // silently fail if no audio files
+  }
+  toggle() {
+    this.muted = !this.muted;
+    return this.muted;
+  }
+}
+const audio = new AudioManager();
+
+function toggleMute() {
+  const muted = audio.toggle();
+  document.getElementById('mute-btn').innerHTML = muted
+    ? ic('volume-xmark') : ic('volume-high');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  CANVAS PARTICLE SYSTEM
+// ═══════════════════════════════════════════════════════════════════
+class Particle {
+  constructor(x, y, colors, opts = {}) {
+    this.x = x; this.y = y;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = (opts.minSpeed || 2) + Math.random() * (opts.maxSpeed || 8);
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed - (opts.upBias || 2);
+    this.gravity = opts.gravity ?? 0.15;
+    this.friction = opts.friction ?? 0.98;
+    this.size = (opts.minSize || 2) + Math.random() * (opts.maxSize || 5);
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.life = 1;
+    this.decay = (opts.decay || 0.015) + Math.random() * 0.01;
+    this.bounce = opts.bounce ?? 0.4;
+  }
+  update() {
+    this.vy += this.gravity;
+    this.vx *= this.friction;
+    this.vy *= this.friction;
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life -= this.decay;
+    if (this.y > window.innerHeight - 5) {
+      this.y = window.innerHeight - 5;
+      this.vy *= -this.bounce;
+    }
+  }
+  draw(ctx) {
+    ctx.globalAlpha = Math.max(0, this.life);
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, Math.max(0.5, this.size * this.life), 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+class ParticleSystem {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.particles = [];
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+    this._loop();
+  }
+  resize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  }
+  burst(x, y, count, colors, opts) {
+    for (let i = 0; i < count; i++) this.particles.push(new Particle(x, y, colors, opts));
+  }
+  ambient() {
+    // Floating upward sparkle
+    const colors = ['#9b59ff','#39ff14','#f5a623','#5dc8f5','#c061cb','#e8c96a'];
+    this.particles.push(new Particle(
+      Math.random() * window.innerWidth,
+      window.innerHeight + 10,
+      colors,
+      { minSpeed: 0.3, maxSpeed: 1.2, gravity: -0.03, friction: 0.995,
+        minSize: 1, maxSize: 3, decay: 0.004, upBias: 0.8, bounce: 0 }
+    ));
+  }
+  _loop() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.update();
+      p.draw(this.ctx);
+      if (p.life <= 0) this.particles.splice(i, 1);
+    }
+    this.ctx.globalAlpha = 1;
+    requestAnimationFrame(() => this._loop());
+  }
+}
+const ps = new ParticleSystem(document.getElementById('particle-canvas'));
+setInterval(() => ps.ambient(), 200);
+
+// ═══════════════════════════════════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════════════════════════════════
-
-const BASE_CLICK        = 5;    // minerals per click (before upgrades)
-const BASE_PASSIVE      = 0.5;  // minerals/s (before upgrades)
-const BASE_GEODE_CHANCE = 0.05; // 5% chance per vein click
+const BASE_CLICK        = 5;
+const BASE_PASSIVE      = 0.5;
+const BASE_GEODE_CHANCE = 0.05;
 const SAVE_KEY          = 'treasureHunterSave';
+const PRESTIGE_THRESHOLD = 1000000;
 
-const RARITY_COLOR = {
+const RARITY_COLORS = {
   common: '#aaaaaa', uncommon: '#57e389', rare: '#5dc8f5',
   epic: '#c061cb', legendary: '#f5a623',
 };
-
 const RARITY_PARTICLES = {
   common:    ['#aaa','#ccc','#888'],
   uncommon:  ['#57e389','#3fb950','#a8ffbc'],
@@ -710,8 +850,6 @@ const RARITY_PARTICLES = {
   epic:      ['#c061cb','#9b59ff','#e89ded'],
   legendary: ['#f5a623','#e8c96a','#fff5a0','#ff9500'],
 };
-
-const SPARKLE_COLORS = ['#9b59ff','#39ff14','#f5a623','#5dc8f5','#c061cb','#e8c96a','#fff'];
 
 const LEVEL_TITLES = [
   'Novice Miner','Apprentice Digger','Cave Explorer','Rock Hound','Stone Seeker',
@@ -722,149 +860,200 @@ const LEVEL_TITLES = [
   'Stone Deity','Rune Ascendant','Ancient One','Mineral Immortal','God of Depths',
 ];
 
-// Two forge upgrades: Click Power and Passive Mining Rate (each 0–5 levels)
 const FORGE_UPGRADES = {
   clickPower: {
-    name: 'Click Power', icon: '⚡',
+    name: 'Click Power', icon: 'bolt-lightning',
     desc: 'Amplifies minerals earned per vein strike.',
-    maxLevel: 5,
-    costs:       [200,  800,  3500,  15000, 75000],
-    multipliers: [1, 2, 4, 8, 16, 32],  // index = level
-    unlockLvl:   [1, 3, 6, 10, 15],     // player level needed to buy level N
+    maxLevel: 10, baseCost: 200, growth: 2.5, multBase: 1.5,
   },
   passiveRate: {
-    name: 'Passive Mining', icon: '⛏️',
+    name: 'Passive Mining', icon: 'gauge-high',
     desc: 'Boosts minerals generated automatically per second.',
-    maxLevel: 5,
-    costs:       [150,  600,  2500,  12000, 60000],
-    multipliers: [1, 2, 4, 8, 16, 32],
-    unlockLvl:   [1, 2, 5, 8, 12],
+    maxLevel: 10, baseCost: 150, growth: 2.5, multBase: 1.5,
   },
 };
 
-// Pets cost Gems and orbit the vein once unlocked
+function forgeCost(key, lvl) {
+  if (lvl === undefined) lvl = gs.forge[key];
+  const u = FORGE_UPGRADES[key];
+  return Math.floor(u.baseCost * Math.pow(u.growth, lvl));
+}
+function forgeMult(key) { return Math.pow(FORGE_UPGRADES[key].multBase, gs.forge[key]); }
+function forgeUnlockLvl(key, lvl) {
+  return key === 'clickPower' ? Math.max(1, lvl * 2 - 1) : Math.max(1, lvl * 2 - 2);
+}
+
+const MINER_TYPES = [
+  { id:'apprentice',  icon:'person-digging',     name:'Apprentice Miner',  baseCost:50,     output:0.5, growth:1.12, unlockLvl:1,  color:'#aaaaaa' },
+  { id:'journeyman',  icon:'helmet-safety',      name:'Journeyman Miner',  baseCost:500,    output:3,   growth:1.14, unlockLvl:5,  color:'#57e389' },
+  { id:'expert',      icon:'screwdriver-wrench',  name:'Expert Miner',      baseCost:5000,   output:15,  growth:1.16, unlockLvl:10, color:'#5dc8f5' },
+  { id:'master',      icon:'crown',              name:'Master Miner',      baseCost:50000,  output:80,  growth:1.18, unlockLvl:15, color:'#c061cb' },
+  { id:'legendary',   icon:'star',               name:'Legendary Miner',   baseCost:500000, output:400, growth:1.20, unlockLvl:22, color:'#f5a623' },
+];
+
+function minerCost(type) {
+  return Math.floor(type.baseCost * Math.pow(type.growth, gs.miners[type.id]));
+}
+function totalMinerOutput() {
+  let total = 0;
+  for (const t of MINER_TYPES) total += gs.miners[t.id] * t.output;
+  return total;
+}
+
 const PETS = [
-  { id:'autoMiner',      icon:'⛏️', name:'Auto-Miner',      cost:50,  unlockLvl:3,  orbitDur:'5s',
-    desc:'Drills cave walls tirelessly. +2 minerals/s passive income.' },
-  { id:'treasureHound',  icon:'🐕', name:'Treasure Hound',  cost:30,  unlockLvl:5,  orbitDur:'7s',
-    desc:'Sniffs out hidden geodes! +10% chance to find one per click.' },
-  { id:'crystalFairy',   icon:'🧚', name:'Crystal Fairy',   cost:100, unlockLvl:10, orbitDur:'9s',
-    desc:'Enchants gem drops. +20% chance to double gems from geodes.' },
+  { id:'autoMiner', icon:'robot', name:'Auto-Miner', gemCost:50, unlockLvl:3, orbitDur:'5s',
+    desc:'Drills cave walls tirelessly.', baseFeed:300, feedGrowth:2.5, maxLvl:10,
+    bonusDesc: lvl => `+${(2 + lvl * 1.5).toFixed(1)} minerals/s` },
+  { id:'treasureHound', icon:'dog', name:'Treasure Hound', gemCost:30, unlockLvl:5, orbitDur:'7s',
+    desc:'Sniffs out hidden geodes!', baseFeed:200, feedGrowth:2.5, maxLvl:10,
+    bonusDesc: lvl => `+${10 + lvl * 2}% geode chance` },
+  { id:'crystalFairy', icon:'wand-magic-sparkles', name:'Crystal Fairy', gemCost:100, unlockLvl:10, orbitDur:'9s',
+    desc:'Enchants gem drops.', baseFeed:500, feedGrowth:2.5, maxLvl:10,
+    bonusDesc: lvl => `+${20 + lvl * 4}% gem double chance` },
 ];
 
-// Artifacts drop only from geodes; each has a unique passive effect
+function petFeedCost(pet) {
+  const p = gs.pets[pet.id];
+  return Math.floor(pet.baseFeed * Math.pow(pet.feedGrowth, p.level));
+}
+
 const ARTIFACTS = [
-  { id:'dwarvenGear',    icon:'⚙️', name:'Dwarven Gear',     rarity:'rare',      desc:'+50% auto-mining speed.' },
-  { id:'luckyCoin',      icon:'🍀', name:'Lucky Coin',        rarity:'rare',      desc:'+5% chance for double minerals on click.' },
-  { id:'geomancersEye',  icon:'🔮', name:"Geomancer's Eye",   rarity:'epic',      desc:'+30% geode quality (shifts outcomes toward rarer rewards).' },
-  { id:'dragonClaw',     icon:'🐉', name:'Dragon Claw',       rarity:'epic',      desc:'+100% click power.' },
-  { id:'ancientCompass', icon:'🧭', name:'Ancient Compass',   rarity:'legendary', desc:'Auto-generates 1 Common Geode every 5 minutes.' },
+  { id:'dwarvenGear',    icon:'gears',     name:'Dwarven Gear',      rarity:'rare',      desc:'+50% auto-mining speed.' },
+  { id:'luckyCoin',      icon:'clover',    name:'Lucky Coin',        rarity:'rare',      desc:'+5% chance for double minerals on click.' },
+  { id:'geomancersEye',  icon:'eye',       name:"Geomancer's Eye",   rarity:'epic',      desc:'+30% geode quality.' },
+  { id:'dragonClaw',     icon:'dragon',    name:'Dragon Claw',       rarity:'epic',      desc:'+100% click power.' },
+  { id:'ancientCompass', icon:'compass',   name:'Ancient Compass',   rarity:'legendary', desc:'Auto-generates 1 Common Geode every 5 min.' },
 ];
 
-const GEODE_COSTS     = { common: 500,  rare: 3000,  epic: 20000 };
-const GEODE_UNLOCK_LV = { common: 1,    rare: 8,     epic: 18    };
+const GEODE_COSTS     = { common: 500, rare: 3000, epic: 20000 };
+const GEODE_UNLOCK_LV = { common: 1, rare: 8, epic: 18 };
 
-// Weighted outcome tables for each geode tier
 const GEODE_TABLES = {
   common: [
-    { type:'minerals', amount:[50,   150  ], weight:500, rarity:'common',    icon:'🪨', name:'Mineral Vein'   },
-    { type:'minerals', amount:[200,  500  ], weight:200, rarity:'uncommon',  icon:'✨', name:'Rich Vein'      },
-    { type:'minerals', amount:[800,  1500 ], weight:50,  rarity:'rare',      icon:'💫', name:'Massive Vein'   },
-    { type:'gems',     amount:[1,    3    ], weight:30,  rarity:'rare',      icon:'💜', name:'Gem Fragment'   },
-    { type:'gems',     amount:[5,    10   ], weight:8,   rarity:'epic',      icon:'💎', name:'Gem Cache'      },
-    { type:'artifact', id:'dwarvenGear',     weight:3,   rarity:'legendary', icon:'⚙️', name:'Dwarven Gear'  },
-    { type:'artifact', id:'luckyCoin',       weight:3,   rarity:'legendary', icon:'🍀', name:'Lucky Coin'    },
+    { type:'minerals', amount:[50,150],    weight:500, rarity:'common',    icon:'mountain',  name:'Mineral Vein' },
+    { type:'minerals', amount:[200,500],   weight:200, rarity:'uncommon',  icon:'mountain',  name:'Rich Vein' },
+    { type:'minerals', amount:[800,1500],  weight:50,  rarity:'rare',      icon:'mountain',  name:'Massive Vein' },
+    { type:'gems',     amount:[1,3],       weight:30,  rarity:'rare',      icon:'diamond',   name:'Gem Fragment' },
+    { type:'gems',     amount:[5,10],      weight:8,   rarity:'epic',      icon:'gem',       name:'Gem Cache' },
+    { type:'artifact', id:'dwarvenGear',   weight:3,   rarity:'legendary', icon:'gears',     name:'Dwarven Gear' },
+    { type:'artifact', id:'luckyCoin',     weight:3,   rarity:'legendary', icon:'clover',    name:'Lucky Coin' },
   ],
   rare: [
-    { type:'minerals', amount:[500,  1500 ], weight:300, rarity:'uncommon',  icon:'🪨', name:'Mineral Trove' },
-    { type:'minerals', amount:[2000, 6000 ], weight:150, rarity:'rare',      icon:'✨', name:'Rich Trove'    },
-    { type:'gems',     amount:[5,    15   ], weight:80,  rarity:'rare',      icon:'💜', name:'Gem Fragment'  },
-    { type:'gems',     amount:[15,   40   ], weight:25,  rarity:'epic',      icon:'💎', name:'Gem Cache'     },
-    { type:'artifact', id:'geomancersEye',   weight:5,   rarity:'legendary', icon:'🔮', name:"Geomancer's Eye" },
-    { type:'artifact', id:'dragonClaw',      weight:5,   rarity:'legendary', icon:'🐉', name:'Dragon Claw'   },
+    { type:'minerals', amount:[500,1500],  weight:300, rarity:'uncommon',  icon:'mountain',  name:'Mineral Trove' },
+    { type:'minerals', amount:[2000,6000], weight:150, rarity:'rare',      icon:'mountain',  name:'Rich Trove' },
+    { type:'gems',     amount:[5,15],      weight:80,  rarity:'rare',      icon:'diamond',   name:'Gem Fragment' },
+    { type:'gems',     amount:[15,40],     weight:25,  rarity:'epic',      icon:'gem',       name:'Gem Cache' },
+    { type:'artifact', id:'geomancersEye', weight:5,   rarity:'legendary', icon:'eye',       name:"Geomancer's Eye" },
+    { type:'artifact', id:'dragonClaw',    weight:5,   rarity:'legendary', icon:'dragon',    name:'Dragon Claw' },
   ],
   epic: [
-    { type:'minerals', amount:[5000, 20000], weight:200, rarity:'rare',      icon:'🪨', name:'Mineral Hoard'   },
-    { type:'gems',     amount:[30,   100  ], weight:100, rarity:'epic',      icon:'💜', name:'Gem Hoard'       },
-    { type:'gems',     amount:[80,   200  ], weight:30,  rarity:'legendary', icon:'💎', name:'Gem Treasury'    },
-    { type:'artifact', id:'ancientCompass',  weight:8,   rarity:'legendary', icon:'🧭', name:'Ancient Compass' },
-    { type:'artifact', id:'geomancersEye',   weight:10,  rarity:'legendary', icon:'🔮', name:"Geomancer's Eye" },
-    { type:'artifact', id:'dragonClaw',      weight:10,  rarity:'legendary', icon:'🐉', name:'Dragon Claw'     },
+    { type:'minerals', amount:[5000,20000],weight:200, rarity:'rare',      icon:'mountain',  name:'Mineral Hoard' },
+    { type:'gems',     amount:[30,100],    weight:100, rarity:'epic',      icon:'diamond',   name:'Gem Hoard' },
+    { type:'gems',     amount:[80,200],    weight:30,  rarity:'legendary', icon:'gem',       name:'Gem Treasury' },
+    { type:'artifact', id:'ancientCompass',weight:8,   rarity:'legendary', icon:'compass',   name:'Ancient Compass' },
+    { type:'artifact', id:'geomancersEye', weight:10,  rarity:'legendary', icon:'eye',       name:"Geomancer's Eye" },
+    { type:'artifact', id:'dragonClaw',    weight:10,  rarity:'legendary', icon:'dragon',    name:'Dragon Claw' },
   ],
 };
+
+const MILESTONES = [
+  { id:'clicks_100',    name:'Persistent Miner', desc:'Click the vein 100 times',        target:100,   reward:5,   progress:() => gs.totalClicks },
+  { id:'clicks_1k',     name:'Dedicated Digger',  desc:'Click the vein 1,000 times',      target:1000,  reward:25,  progress:() => gs.totalClicks },
+  { id:'clicks_10k',    name:'Obsessed Miner',    desc:'Click the vein 10,000 times',     target:10000, reward:100, progress:() => gs.totalClicks },
+  { id:'geodes_10',     name:'Geode Cracker',     desc:'Crack 10 geodes',                 target:10,    reward:10,  progress:() => gs.totalGeodesCracked },
+  { id:'geodes_100',    name:'Geode Maniac',      desc:'Crack 100 geodes',                target:100,   reward:50,  progress:() => gs.totalGeodesCracked },
+  { id:'forge_5',       name:'Forge Adept',       desc:'Reach forge level 5 on any upgrade', target:5,  reward:20,  progress:() => Math.max(gs.forge.clickPower, gs.forge.passiveRate) },
+  { id:'forge_max',     name:'Forge Master',      desc:'Max out any forge upgrade',        target:10,   reward:75,  progress:() => Math.max(gs.forge.clickPower, gs.forge.passiveRate) },
+  { id:'level_10',      name:'Deep Explorer',     desc:'Reach miner level 10',             target:10,   reward:15,  progress:() => gs.level },
+  { id:'level_20',      name:'Cave Master',       desc:'Reach miner level 20',             target:20,   reward:50,  progress:() => gs.level },
+  { id:'all_pets',      name:'Pet Collector',     desc:'Own all 3 pets',                   target:3,    reward:30,  progress:() => PETS.filter(p => gs.pets[p.id].owned).length },
+  { id:'all_artifacts', name:'Relic Hunter',      desc:'Find all 5 artifacts',             target:5,    reward:100, progress:() => Object.values(gs.artifacts).filter(Boolean).length },
+  { id:'prestige_1',    name:'Deep Descent',      desc:'Prestige for the first time',      target:1,    reward:50,  progress:() => gs.totalPrestiges },
+];
 
 // ═══════════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════════
-
-let gs = {
-  minerals: 0,
-  gems:     0,
-  xp:       0,
-  level:    1,
-  totalClicks: 0,
-  geodes:   { common: 0, rare: 0, epic: 0 },
-  forge:    { clickPower: 0, passiveRate: 0 },   // 0 = base (no upgrade)
-  pets:     { autoMiner: false, treasureHound: false, crystalFairy: false },
-  artifacts:{ dwarvenGear: false, luckyCoin: false, geomancersEye: false,
-              dragonClaw: false, ancientCompass: false },
-  log:           [],   // last 30 discovery entries
-  lastSave:      Date.now(),
-  lastGeodeSpawn:Date.now(),
-};
-
+function defaultState() {
+  return {
+    minerals: 0, gems: 0, xp: 0, level: 1,
+    totalClicks: 0, totalGeodesCracked: 0,
+    geodes: { common: 0, rare: 0, epic: 0 },
+    forge: { clickPower: 0, passiveRate: 0 },
+    pets: {
+      autoMiner:     { owned: false, level: 0 },
+      treasureHound: { owned: false, level: 0 },
+      crystalFairy:  { owned: false, level: 0 },
+    },
+    artifacts: { dwarvenGear: false, luckyCoin: false, geomancersEye: false,
+                 dragonClaw: false, ancientCompass: false },
+    miners: { apprentice: 0, journeyman: 0, expert: 0, master: 0, legendary: 0 },
+    milestones: {},
+    coreShards: 0, totalPrestiges: 0,
+    log: [],
+    lastSave: Date.now(), lastGeodeSpawn: Date.now(),
+  };
+}
+let gs = defaultState();
 let currentTab = 'forge';
-let xpAccum    = 0;
-let lastTick   = Date.now();
+let xpAccum = 0;
+let lastTick = Date.now();
+
+// ═══════════════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════════════
+function fmt(n) {
+  if (n == null) return '0';
+  n = Math.floor(n);
+  if (n < 0) return '-' + fmt(-n);
+  if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6)  return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3)  return (n / 1e3).toFixed(1) + 'K';
+  return '' + n;
+}
+
+function xpRequired(lvl) { return Math.floor(lvl * 100 * Math.pow(1.15, lvl)); }
 
 // ═══════════════════════════════════════════════════════════════════
 //  FORMULAS
 // ═══════════════════════════════════════════════════════════════════
-
-function xpRequired(lvl) {
-  return Math.floor(lvl * 100 * Math.pow(1.15, lvl));
-}
-
-function fmt(n) {
-  n = Math.floor(n);
-  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-  return '' + n;
-}
-
-// Returns all active multipliers derived from artifacts and pets
 function computeMults() {
   const a = gs.artifacts, p = gs.pets;
-  let click   = 1;  if (a.dragonClaw)  click   += 1;    // Dragon Claw: +100% click
-  let passive = 1;  if (a.dwarvenGear) passive  += 0.5; // Dwarven Gear: +50% passive
+  let click   = 1; if (a.dragonClaw)  click += 1;
+  let passive = 1; if (a.dwarvenGear) passive += 0.5;
+  const thLvl = p.treasureHound.level || 0;
+  const cfLvl = p.crystalFairy.level || 0;
   return {
     click,
     passive,
-    geodeChance:       BASE_GEODE_CHANCE + (p.treasureHound ? 0.10 : 0),
-    gemDrop:           p.crystalFairy ? 0.20 : 0,
+    geodeChance:       BASE_GEODE_CHANCE + (p.treasureHound.owned ? (0.10 + thLvl * 0.02) : 0),
+    gemDrop:           p.crystalFairy.owned ? (0.20 + cfLvl * 0.04) : 0,
     geodeQuality:      a.geomancersEye ? 0.30 : 0,
     doubleClickChance: a.luckyCoin ? 0.05 : 0,
+    coreShard:         1 + gs.coreShards * 0.10,
   };
 }
 
 function clickYield() {
   const m = computeMults();
-  return Math.floor(BASE_CLICK * FORGE_UPGRADES.clickPower.multipliers[gs.forge.clickPower] * m.click);
+  return Math.floor(BASE_CLICK * forgeMult('clickPower') * m.click * m.coreShard);
 }
 
 function passiveYield() {
   const m = computeMults();
-  return BASE_PASSIVE * FORGE_UPGRADES.passiveRate.multipliers[gs.forge.passiveRate] * m.passive
-       + (gs.pets.autoMiner ? 2 : 0);   // Auto-Miner adds flat +2 min/s
+  const forgeP = BASE_PASSIVE * forgeMult('passiveRate') * m.passive;
+  const minerP = totalMinerOutput();
+  const amLvl = gs.pets.autoMiner.level || 0;
+  const petP = gs.pets.autoMiner.owned ? (2 + amLvl * 1.5) : 0;
+  return (forgeP + minerP + petP) * m.coreShard;
 }
 
 function xpPerSec() { return passiveYield() * 0.1; }
 
 // ═══════════════════════════════════════════════════════════════════
-//  WEIGHTED ROLL UTILITIES
+//  WEIGHTED ROLL
 // ═══════════════════════════════════════════════════════════════════
-
 function weightedRoll(table) {
   let total = table.reduce((s, e) => s + e.weight, 0);
   let r = Math.random() * total;
@@ -872,14 +1061,13 @@ function weightedRoll(table) {
   return table[table.length - 1];
 }
 
-// Geomancer's Eye: shift weight from the 2 lightest entries to the 2 heaviest
 function adjustQuality(table, bonus) {
   if (bonus <= 0) return table;
-  const copy   = table.map(e => ({ ...e }));
+  const copy = table.map(e => ({ ...e }));
   const totalW = copy.reduce((s, e) => s + e.weight, 0);
-  const shift  = totalW * bonus * 0.15;   // at max bonus, shift 4.5% of total weight
+  const shift = totalW * bonus * 0.15;
   const sorted = [...copy].sort((a, b) => a.weight - b.weight);
-  const take   = shift / 2;
+  const take = shift / 2;
   for (let i = 0; i < Math.min(2, sorted.length); i++)
     sorted[i].weight = Math.max(1, sorted[i].weight - take);
   const give = shift / 2;
@@ -898,9 +1086,9 @@ function rollGeode(tier) {
 // ═══════════════════════════════════════════════════════════════════
 //  ACTIONS
 // ═══════════════════════════════════════════════════════════════════
-
 function clickVein(event) {
   doSquish();
+  audio.play('pickaxe_hit');
   const m      = computeMults();
   let amount   = clickYield();
   let lucky    = false;
@@ -912,24 +1100,22 @@ function clickVein(event) {
   addXP(Math.max(1, Math.floor(amount * 0.1)));
 
   const x = event.clientX, y = event.clientY;
-  spawnFloat(x, y, '+' + fmt(amount) + ' 🪨', '#f5a623');
-  if (lucky) spawnFloat(x - 35, y - 22, '2× Lucky! 🍀', '#57e389');
-  spawnParticles(x, y, 'common');
+  spawnFloat(x, y, '+' + fmt(amount), '#f5a623');
+  if (lucky) spawnFloat(x - 35, y - 22, '2x Lucky!', '#57e389');
+  ps.burst(x, y, 12, RARITY_PARTICLES.common, { maxSpeed: 6, maxSize: 4 });
 
-  // Check for geode drop
   if (Math.random() < m.geodeChance) {
     let tier = 'common';
-    if (gs.pets.treasureHound) {
+    if (gs.pets.treasureHound.owned) {
       const r = Math.random();
-      if (r < 0.05)      tier = 'epic';
+      if (r < 0.05) tier = 'epic';
       else if (r < 0.30) tier = 'rare';
     }
     gs.geodes[tier]++;
     const label = tier.charAt(0).toUpperCase() + tier.slice(1);
-    const col   = tier === 'epic' ? RARITY_COLOR.epic
-                : tier === 'rare' ? RARITY_COLOR.rare
-                : RARITY_COLOR.uncommon;
-    setTimeout(() => spawnFloat(x + 22, y - 28, label + ' Geode! 🪨', col), 180);
+    const col = tier === 'epic' ? RARITY_COLORS.epic : tier === 'rare' ? RARITY_COLORS.rare : RARITY_COLORS.uncommon;
+    setTimeout(() => spawnFloat(x + 22, y - 28, label + ' Geode!', col), 180);
+    ps.burst(x, y, 8, RARITY_PARTICLES[tier === 'common' ? 'uncommon' : tier]);
     renderRight();
   }
   renderLeft();
@@ -938,7 +1124,7 @@ function clickVein(event) {
 function doSquish() {
   const btn = document.getElementById('vein-btn');
   btn.classList.remove('squishing');
-  void btn.offsetWidth;  // trigger reflow so animation restarts
+  void btn.offsetWidth;
   btn.classList.add('squishing');
   btn.addEventListener('animationend', () => btn.classList.remove('squishing'), { once: true });
 }
@@ -948,26 +1134,54 @@ function upgradeForge(key) {
   const curr = gs.forge[key];
   if (curr >= upg.maxLevel) return;
   const next = curr + 1;
-  if (gs.level < upg.unlockLvl[next - 1]) return;
-  const cost = upg.costs[next - 1];
+  if (gs.level < forgeUnlockLvl(key, next)) return;
+  const cost = forgeCost(key, curr);
   if (gs.minerals < cost) return;
-  gs.minerals   -= cost;
-  gs.forge[key]  = next;
+  gs.minerals -= cost;
+  gs.forge[key] = next;
+  audio.play('purchase_upgrade');
+  renderAll();
+}
+
+function hireMiner(id) {
+  const type = MINER_TYPES.find(t => t.id === id);
+  if (!type) return;
+  if (gs.level < type.unlockLvl) return;
+  const cost = minerCost(type);
+  if (gs.minerals < cost) return;
+  gs.minerals -= cost;
+  gs.miners[id]++;
+  audio.play('purchase_upgrade');
   renderAll();
 }
 
 function unlockPet(id) {
   const pet = PETS.find(p => p.id === id);
-  if (!pet || gs.pets[id]) return;
-  if (gs.level < pet.unlockLvl || gs.gems < pet.cost) return;
-  gs.gems    -= pet.cost;
-  gs.pets[id] = true;
+  if (!pet || gs.pets[id].owned) return;
+  if (gs.level < pet.unlockLvl || gs.gems < pet.gemCost) return;
+  gs.gems -= pet.gemCost;
+  gs.pets[id].owned = true;
+  audio.play('purchase_upgrade');
+  renderAll();
+}
+
+function feedPet(id) {
+  const pet = PETS.find(p => p.id === id);
+  if (!pet || !gs.pets[id].owned) return;
+  if (gs.pets[id].level >= pet.maxLvl) return;
+  const cost = petFeedCost(pet);
+  if (gs.minerals < cost) return;
+  gs.minerals -= cost;
+  gs.pets[id].level++;
+  audio.play('purchase_upgrade');
   renderAll();
 }
 
 function crackGeode(tier) {
   if (gs.geodes[tier] <= 0) return;
   gs.geodes[tier]--;
+  gs.totalGeodesCracked++;
+  audio.play(tier === 'epic' ? 'geode_crack_epic' : tier === 'rare' ? 'geode_crack_rare' : 'geode_crack_common');
   const outcome = rollGeode(tier);
   const m       = computeMults();
   const entry   = { rarity: outcome.rarity, icon: outcome.icon, name: outcome.name,
@@ -975,33 +1189,35 @@ function crackGeode(tier) {
 
   if (outcome.type === 'minerals') {
     const [lo, hi] = outcome.amount;
-    const amt   = lo + Math.floor(Math.random() * (hi - lo + 1));
+    const amt = lo + Math.floor(Math.random() * (hi - lo + 1));
     gs.minerals += amt;
     entry.minerals = amt;
-
   } else if (outcome.type === 'gems') {
     const [lo, hi] = outcome.amount;
     let amt = lo + Math.floor(Math.random() * (hi - lo + 1));
-    if (m.gemDrop > 0 && Math.random() < m.gemDrop) amt *= 2;  // Crystal Fairy
-    gs.gems   += amt;
+    if (m.gemDrop > 0 && Math.random() < m.gemDrop) amt *= 2;
+    gs.gems += amt;
     entry.gems = amt;
-
   } else if (outcome.type === 'artifact') {
     if (!gs.artifacts[outcome.id]) {
       gs.artifacts[outcome.id] = true;
       entry.name = outcome.name + ' (Artifact!)';
     } else {
-      // Already owned — convert to mineral fallback
       const fallback = 500;
-      gs.minerals   += fallback;
+      gs.minerals += fallback;
       entry.minerals = fallback;
-      entry.name     = outcome.name + ' → dup +' + fallback + ' 🪨';
+      entry.name = outcome.name + ' (dup +' + fallback + ')';
     }
   }
 
   addXP({ common: 5, rare: 20, epic: 75 }[tier] || 5);
   gs.log.unshift(entry);
   if (gs.log.length > 30) gs.log.length = 30;
+
+  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+  ps.burst(cx, cy, { common:15, rare:25, epic:35 }[tier] || 15,
+    RARITY_PARTICLES[outcome.rarity] || RARITY_PARTICLES.common,
+    { maxSpeed: 10, maxSize: 6 });
 
   if (['rare','epic','legendary'].includes(outcome.rarity)) showCrackPopup(outcome, entry);
   renderAll();
@@ -1012,14 +1228,65 @@ function buyGeode(tier) {
   if (gs.level < GEODE_UNLOCK_LV[tier]) return;
   gs.minerals -= GEODE_COSTS[tier];
   gs.geodes[tier]++;
+  audio.play('purchase_upgrade');
   renderLeft();
   renderMiddle();
+}
+
+function claimMilestone(id) {
+  const ms = MILESTONES.find(m => m.id === id);
+  if (!ms || gs.milestones[id]) return;
+  if (ms.progress() < ms.target) return;
+  gs.milestones[id] = true;
+  gs.gems += ms.reward;
+  spawnFloat(window.innerWidth / 2, window.innerHeight / 2, '+' + ms.reward + ' Gems!', '#9b59ff');
+  ps.burst(window.innerWidth / 2, window.innerHeight / 2, 20, RARITY_PARTICLES.epic);
+  renderAll();
+}
+
+function doPrestige() {
+  if (gs.minerals < PRESTIGE_THRESHOLD) return;
+  if (!confirm(
+    'Descend Deeper?\n\n' +
+    'You will LOSE:\n' +
+    '  - All minerals, XP & level\n' +
+    '  - Forge upgrades\n' +
+    '  - Geodes & Miners\n\n' +
+    'You will KEEP:\n' +
+    '  - Pets & pet levels\n' +
+    '  - Artifacts & Gems\n' +
+    '  - Milestones\n\n' +
+    'You will GAIN:\n' +
+    '  +1 Core Shard (+10% all mining)'
+  )) return;
+
+  const keep = {
+    gems: gs.gems,
+    pets: JSON.parse(JSON.stringify(gs.pets)),
+    artifacts: JSON.parse(JSON.stringify(gs.artifacts)),
+    milestones: JSON.parse(JSON.stringify(gs.milestones)),
+    coreShards: gs.coreShards + 1,
+    totalPrestiges: gs.totalPrestiges + 1,
+    totalClicks: gs.totalClicks,
+    totalGeodesCracked: gs.totalGeodesCracked,
+    log: gs.log.slice(),
+  };
+  gs = defaultState();
+  Object.assign(gs, keep);
+
+  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+  for (let i = 0; i < 5; i++)
+    setTimeout(() => ps.burst(cx + (Math.random()-0.5)*300, cy + (Math.random()-0.5)*200, 30,
+      ['#f5a623','#e8c96a','#fff5a0','#9b59ff','#39ff14'], { maxSpeed: 12, maxSize: 7 }), i * 150);
+
+  showNotice('Descended! Core Shards: ' + gs.coreShards + ' (+' + (gs.coreShards * 10) + '% all mining)');
+  renderAll();
+  saveGame();
 }
 
 // ═══════════════════════════════════════════════════════════════════
 //  XP & LEVELING
 // ═══════════════════════════════════════════════════════════════════
-
 function addXP(amount) {
   gs.xp += amount;
   checkLevelUp();
@@ -1035,124 +1302,104 @@ function checkLevelUp() {
 
 function showLevelUp() {
   const title = LEVEL_TITLES[gs.level - 1] || 'God of Depths';
-  document.getElementById('lvlup-title').textContent = 'LEVEL UP! 🎉';
-  document.getElementById('lvlup-sub').textContent   = 'Level ' + gs.level + ' — ' + title;
+  document.getElementById('lvlup-title').textContent = 'LEVEL UP!';
+  document.getElementById('lvlup-sub').textContent = 'Level ' + gs.level + ' — ' + title;
   const banner = document.getElementById('levelup-banner');
   banner.classList.remove('show');
   void banner.offsetWidth;
   banner.classList.add('show');
   const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
-  for (let i = 0; i < 24; i++)
-    setTimeout(() => spawnParticles(cx + (Math.random() - 0.5) * 280, cy, 'legendary'), Math.random() * 380);
+  for (let i = 0; i < 6; i++)
+    setTimeout(() => ps.burst(cx + (Math.random()-0.5)*280, cy, 20, RARITY_PARTICLES.legendary,
+      { maxSpeed: 10, maxSize: 6 }), Math.random() * 400);
   setTimeout(() => banner.classList.remove('show'), 2200);
 }
 
 // ═══════════════════════════════════════════════════════════════════
 //  ANIMATIONS
 // ═══════════════════════════════════════════════════════════════════
-
 function spawnFloat(x, y, text, color) {
   const el = document.createElement('div');
   el.className = 'float-text';
   el.textContent = text;
-  el.style.cssText = `left:${x - 32}px;top:${y - 12}px;color:${color};`;
+  el.style.cssText = `left:${x-32}px;top:${y-12}px;color:${color};`;
   document.body.appendChild(el);
   el.addEventListener('animationend', () => el.remove());
 }
 
-function spawnParticles(x, y, rarity) {
-  const colors = RARITY_PARTICLES[rarity] || RARITY_PARTICLES.common;
-  const count  = { common:7, uncommon:11, rare:15, epic:19, legendary:24 }[rarity] || 8;
-  for (let i = 0; i < count; i++) {
-    const el   = document.createElement('div');
-    el.className = 'particle';
-    const sz   = 3 + Math.random() * 5;
-    const ang  = (i / count) * 2 * Math.PI + Math.random() * 0.5;
-    const dist = 40 + Math.random() * 80;
-    el.style.cssText = [
-      `left:${x}px`, `top:${y}px`,
-      `width:${sz}px`, `height:${sz}px`,
-      `background:${colors[Math.floor(Math.random() * colors.length)]}`,
-      `--tx:${Math.cos(ang) * dist}px`,
-      `--ty:${Math.sin(ang) * dist - 28}px`,
-      `--rot:${Math.random() * 360}deg`,
-      `--dur:${0.55 + Math.random() * 0.65}s`,
-    ].join(';');
-    document.body.appendChild(el);
-    el.addEventListener('animationend', () => el.remove());
-  }
-}
-
-function spawnAmbientSparkle() {
-  const el = document.createElement('div');
-  el.className = 'sparkle';
-  const sz = 2 + Math.random() * 4;
-  el.style.cssText = [
-    `width:${sz}px`, `height:${sz}px`,
-    `left:${Math.random() * 100}vw`,
-    `top:${84 + Math.random() * 16}vh`,
-    `background:${SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)]}`,
-    `--dur:${3 + Math.random() * 4}s`,
-  ].join(';');
-  document.getElementById('sparkle-layer').appendChild(el);
-  el.addEventListener('animationend', () => el.remove());
-}
-
 function showCrackPopup(outcome, entry) {
-  const col = RARITY_COLOR[outcome.rarity];
+  const col = RARITY_COLORS[outcome.rarity];
   document.getElementById('crack-rarity').textContent = outcome.rarity.toUpperCase();
   document.getElementById('crack-rarity').style.color = col;
-  document.getElementById('crack-icon').textContent   = outcome.icon;
-  document.getElementById('crack-name').textContent   = outcome.name;
+  document.getElementById('crack-icon').innerHTML = ic(outcome.icon);
+  document.getElementById('crack-icon').style.color = col;
+  document.getElementById('crack-name').textContent = outcome.name;
   let rw = '';
   if (outcome.type === 'minerals') rw = '+' + fmt(entry.minerals) + ' minerals';
-  else if (outcome.type === 'gems') rw = '+' + entry.gems + ' gems 💜';
-  else rw = '✨ New Artifact discovered!';
+  else if (outcome.type === 'gems') rw = '+' + entry.gems + ' gems';
+  else rw = 'New Artifact discovered!';
   document.getElementById('crack-reward').textContent = rw;
   document.getElementById('crack-box').className = 'crack-box ' + outcome.rarity;
   document.getElementById('crack-popup').classList.add('show');
-  spawnParticles(window.innerWidth / 2, window.innerHeight / 2, outcome.rarity);
   setTimeout(() => document.getElementById('crack-popup').classList.remove('show'), 2400);
 }
 
 // ═══════════════════════════════════════════════════════════════════
 //  RENDER
 // ═══════════════════════════════════════════════════════════════════
-
 function renderLeft() {
   document.getElementById('stat-minerals').textContent = fmt(gs.minerals);
-  document.getElementById('stat-gems').textContent     = gs.gems;
-  document.getElementById('lvl-num').textContent       = gs.level;
-  document.getElementById('lvl-title').textContent     = LEVEL_TITLES[gs.level - 1] || 'God of Depths';
-  document.getElementById('lvl-sub').textContent       = fmt(clickYield()) + ' minerals/click';
+  document.getElementById('stat-gems').textContent = fmt(gs.gems);
+  document.getElementById('lvl-num').textContent = gs.level;
+  document.getElementById('lvl-title').textContent = LEVEL_TITLES[gs.level - 1] || 'God of Depths';
+  document.getElementById('lvl-sub').textContent = fmt(clickYield()) + ' minerals/click';
 
   const xpReq = xpRequired(gs.level);
   document.getElementById('xp-bar-fill').style.width = Math.min(100, gs.xp / xpReq * 100).toFixed(1) + '%';
-  document.getElementById('xp-text').textContent     = fmt(gs.xp) + ' / ' + fmt(xpReq) + ' XP';
+  document.getElementById('xp-text').textContent = fmt(gs.xp) + ' / ' + fmt(xpReq) + ' XP';
 
-  document.getElementById('stat-cpc').textContent    = fmt(clickYield());
-  document.getElementById('stat-cps').textContent    = fmt(passiveYield()) + '/s';
+  document.getElementById('stat-cpc').textContent = fmt(clickYield());
+  document.getElementById('stat-cps').textContent = fmt(passiveYield()) + '/s';
   document.getElementById('stat-clicks').textContent = fmt(gs.totalClicks);
 
   const totalG = gs.geodes.common + gs.geodes.rare + gs.geodes.epic;
-  document.getElementById('vein-sub').textContent = totalG > 0
-    ? `🪨 ${totalG} geode${totalG > 1 ? 's' : ''} ready to crack!`
-    : '⛏️ Click the Resource Vein!';
+  document.getElementById('vein-sub').innerHTML = totalG > 0
+    ? ic('cube') + ` ${totalG} geode${totalG > 1 ? 's' : ''} ready to crack!`
+    : ic('hammer') + ' Click the Resource Vein!';
 
   renderPetLayer();
+  renderPrestige();
 }
 
 function renderPetLayer() {
   const layer = document.getElementById('pet-layer');
   layer.innerHTML = '';
+  let idx = 0;
   PETS.forEach(pet => {
-    if (!gs.pets[pet.id]) return;
+    if (!gs.pets[pet.id].owned) return;
     const el = document.createElement('div');
     el.className = 'pet-float';
-    el.textContent = pet.icon;
     el.style.setProperty('--orbit-dur', pet.orbitDur);
+    el.innerHTML = `<span class="pet-bob" style="--bob-delay:${idx * -0.8}s">${ic(pet.icon)}</span>`;
     layer.appendChild(el);
+    idx++;
   });
+}
+
+function renderPrestige() {
+  const section = document.getElementById('prestige-section');
+  const canPrestige = gs.minerals >= PRESTIGE_THRESHOLD;
+  const hasShards = gs.coreShards > 0;
+
+  if (!canPrestige && !hasShards) { section.innerHTML = ''; return; }
+
+  section.innerHTML = `
+    <div class="prestige-header">${ic('layer-group')} DESCEND DEEPER</div>
+    ${hasShards ? `<div class="prestige-shards">${ic('certificate')} ${gs.coreShards} Core Shard${gs.coreShards > 1 ? 's' : ''} — +${gs.coreShards * 10}% all mining</div>` : ''}
+    <div class="prestige-info">Reset minerals, forge, geodes & miners for a permanent +10% mining boost.</div>
+    <button class="prestige-btn" onclick="doPrestige()" ${canPrestige ? '' : 'disabled'}>
+      ${ic('arrow-down')} ${canPrestige ? 'Descend' : fmt(gs.minerals) + ' / ' + fmt(PRESTIGE_THRESHOLD)}
+    </button>`;
 }
 
 function switchTab(tab, btn) {
@@ -1164,53 +1411,53 @@ function switchTab(tab, btn) {
 
 function renderMiddle() {
   switch (currentTab) {
-    case 'forge':      renderForge();      break;
-    case 'geodes':     renderGeodeLab();   break;
-    case 'pets':       renderPetsPanel();  break;
-    case 'prospector': renderProspector(); break;
+    case 'forge':  renderForge();      break;
+    case 'miners': renderMiners();     break;
+    case 'geodes': renderGeodeLab();   break;
+    case 'pets':   renderPetsPanel();  break;
+    case 'goals':  renderGoals();      break;
   }
 }
 
 function renderForge() {
-  let html = `<div class="forge-desc">Spend minerals to permanently amplify your mining output. Each level multiplies your power.</div>`;
+  let html = `<div class="forge-desc">Spend minerals to permanently amplify your mining output. Costs scale exponentially.</div>`;
   for (const key of ['clickPower', 'passiveRate']) {
     const upg   = FORGE_UPGRADES[key];
     const curr  = gs.forge[key];
     const maxed = curr >= upg.maxLevel;
     const next  = maxed ? upg.maxLevel : curr + 1;
-    const cost  = maxed ? 0 : upg.costs[next - 1];
-    const locked  = !maxed && gs.level < upg.unlockLvl[next - 1];
-    const noGold  = !maxed && !locked && gs.minerals < cost;
+    const cost  = maxed ? 0 : forgeCost(key, curr);
+    const unlvl = maxed ? 0 : forgeUnlockLvl(key, next);
+    const locked = !maxed && gs.level < unlvl;
+    const noGold = !maxed && !locked && gs.minerals < cost;
 
     let cls = 'forge-item';
-    if (maxed)  cls += ' maxed';
-    else if (locked)  cls += ' locked';
-    else if (noGold)  cls += ' cant-afford';
+    if (maxed) cls += ' maxed';
+    else if (locked) cls += ' locked';
+    else if (noGold) cls += ' cant-afford';
 
-    // Level progress pips
     let bars = '<div class="fi-bars">';
     for (let i = 1; i <= upg.maxLevel; i++)
       bars += `<div class="fi-bar${i <= curr ? (maxed ? ' filled maxed' : ' filled') : ''}"></div>`;
     bars += '</div>';
 
-    const cm = upg.multipliers[curr], nm = upg.multipliers[next];
+    const cm = forgeMult(key).toFixed(1);
+    const nm = maxed ? cm : Math.pow(upg.multBase, next).toFixed(1);
     const effectTxt = maxed
-      ? `${upg.multipliers[upg.maxLevel]}× (MAX)`
-      : key === 'clickPower'
-        ? `${cm}× → ${nm}× click power`
-        : `${cm}× → ${nm}× passive rate`;
+      ? `${cm}x (MAX)`
+      : `${cm}x → ${nm}x`;
 
     const costHtml = maxed
-      ? `<span class="fi-cost" style="color:var(--accent)">✨ MAX</span>`
+      ? `<span class="fi-cost" style="color:var(--accent)">${ic('star')} MAX</span>`
       : locked
-        ? `<span class="fi-cost" style="color:var(--muted)">🔒 Lv ${upg.unlockLvl[next-1]}</span>`
-        : `<span class="fi-cost ${noGold ? 'cant' : ''}">🪨 ${fmt(cost)}</span>`;
+        ? `<span class="fi-cost" style="color:var(--muted)">${ic('lock')} Lv ${unlvl}</span>`
+        : `<span class="fi-cost ${noGold ? 'cant' : ''}">${ic('mountain')} ${fmt(cost)}</span>`;
 
     const click = (maxed || locked) ? '' : `onclick="upgradeForge('${key}')"`;
 
     html += `<div class="${cls}" ${click}>
       <div class="fi-header">
-        <span class="fi-name">${upg.icon} ${upg.name}</span>
+        <span class="fi-name">${ic(upg.icon)} ${upg.name}</span>
         <span class="fi-lvlbadge${maxed ? ' maxed' : ''}">Lv ${curr} / ${upg.maxLevel}</span>
       </div>
       <div class="fi-desc">${upg.desc}</div>
@@ -1224,57 +1471,146 @@ function renderForge() {
   document.getElementById('middle-content').innerHTML = html;
 }
 
+function renderMiners() {
+  // Mine shaft visualization
+  let shaftHtml = '<div class="mine-shaft">';
+  let totalMiners = 0;
+  for (const t of MINER_TYPES) totalMiners += gs.miners[t.id];
+
+  if (totalMiners === 0) {
+    shaftHtml += '<div class="shaft-empty">Hire miners to see them at work!</div>';
+  } else {
+    let idx = 0;
+    for (const t of MINER_TYPES) {
+      const count = gs.miners[t.id];
+      const show = Math.min(count, 3);
+      for (let i = 0; i < show; i++) {
+        const left = 5 + idx * 10;
+        const dur = 5 + Math.random() * 5;
+        const walk = 60 + Math.random() * 80;
+        const delay = -(Math.random() * dur);
+        shaftHtml += `<div class="shaft-miner" style="left:${left}%; --dur:${dur.toFixed(1)}s; --walk:${walk.toFixed(0)}px; --delay:${delay.toFixed(1)}s; color:${t.color}; animation-delay:${delay.toFixed(1)}s">
+          ${ic(t.icon)}</div>`;
+        idx++;
+        if (idx >= 12) break;
+      }
+      if (idx >= 12) break;
+    }
+  }
+  shaftHtml += '</div>';
+
+  let html = shaftHtml;
+  html += `<div class="forge-desc">Hire miners for passive mineral income. Each purchase costs more than the last.</div>`;
+
+  for (const t of MINER_TYPES) {
+    const locked = gs.level < t.unlockLvl;
+    const cost = minerCost(t);
+    const noGold = !locked && gs.minerals < cost;
+    const owned = gs.miners[t.id];
+
+    html += `<div class="miner-card">
+      <span class="mc-icon" style="color:${t.color}">${ic(t.icon)}</span>
+      <div class="mc-info">
+        <div class="mc-name">${t.name}</div>
+        <div class="mc-desc">+${t.output}/s per miner</div>
+        ${owned > 0 ? `<div class="mc-owned">${ic('circle-check')} Owned: ${owned} (${fmt(owned * t.output)}/s)</div>` : ''}
+      </div>
+      <button class="mc-buy-btn" onclick="hireMiner('${t.id}')" ${locked || noGold ? 'disabled' : ''}>
+        ${locked ? ic('lock') + ' Lv ' + t.unlockLvl : ic('mountain') + ' ' + fmt(cost)}
+      </button>
+    </div>`;
+  }
+
+  document.getElementById('middle-content').innerHTML = html;
+}
+
 function renderGeodeLab() {
   const tiers = [
-    { id:'common', emoji:'🪨', cls:'',     hint:'Mostly minerals, rare chance for gems or artifacts.' },
-    { id:'rare',   emoji:'💠', cls:'rare', hint:'Better gem rates, epic-tier artifact chances.' },
-    { id:'epic',   emoji:'🔮', cls:'epic', hint:'Massive payouts, high gem yields, legendary artifacts.' },
+    { id:'common', icon:'cube',       cls:'',     hint:'Mostly minerals, rare chance for gems or artifacts.' },
+    { id:'rare',   icon:'dice-d6',    cls:'rare',  hint:'Better gem rates, epic-tier artifact chances.' },
+    { id:'epic',   icon:'gem',        cls:'epic',  hint:'Massive payouts, high gem yields, legendary artifacts.' },
   ];
-  let html = `<div class="lab-intro">Crack geodes to unearth minerals, gems, and powerful artifacts. Higher tiers offer rarer rewards.</div>`;
+
+  let html = `<div class="lab-intro">Crack geodes to unearth minerals, gems, and powerful artifacts.</div>`;
   html += `<div class="lab-sec-title">Geode Inventory</div>`;
+
   for (const t of tiers) {
     const cnt = gs.geodes[t.id];
-    const nameCol = t.id === 'common' ? RARITY_COLOR.uncommon
-                  : t.id === 'rare'   ? RARITY_COLOR.rare
-                  : RARITY_COLOR.epic;
+    const nameCol = t.id === 'common' ? RARITY_COLORS.uncommon
+                  : t.id === 'rare' ? RARITY_COLORS.rare : RARITY_COLORS.epic;
     html += `<div class="geode-item ${t.cls}">
-      <span class="geode-emoji">${t.emoji}</span>
+      <span class="geode-icon" style="color:${nameCol}">${ic(t.icon)}</span>
       <div class="geode-info">
         <div class="geode-name" style="color:${nameCol}">${t.id.charAt(0).toUpperCase() + t.id.slice(1)} Geode</div>
         <div class="geode-count">Owned: <strong>${cnt}</strong></div>
         <div class="geode-hint">${t.hint}</div>
       </div>
       <button class="geode-crack-btn" onclick="crackGeode('${t.id}')" ${cnt > 0 ? '' : 'disabled'}>
-        ${cnt > 0 ? '💥 Crack!' : 'None'}
+        ${cnt > 0 ? ic('gavel') + ' Crack!' : 'None'}
       </button>
     </div>`;
   }
+
+  html += `<div class="lab-sec-title" style="margin-top:18px">${ic('store')} Prospector's Shop</div>`;
+  for (const t of tiers) {
+    const cost   = GEODE_COSTS[t.id];
+    const unlvl  = GEODE_UNLOCK_LV[t.id];
+    const locked = gs.level < unlvl;
+    const noGold = !locked && gs.minerals < cost;
+    const nameCol = t.id === 'common' ? RARITY_COLORS.uncommon
+                  : t.id === 'rare' ? RARITY_COLORS.rare : RARITY_COLORS.epic;
+    html += `<div class="geode-item ${t.cls}">
+      <span class="geode-icon" style="color:${nameCol}">${ic(t.icon)}</span>
+      <div class="geode-info">
+        <div class="geode-name" style="color:${nameCol}">${t.id.charAt(0).toUpperCase() + t.id.slice(1)} Geode</div>
+        <div class="geode-hint">${locked ? ic('lock') + ' Requires Level ' + unlvl : 'Purchase with minerals'}</div>
+      </div>
+      <button class="geode-buy-btn" onclick="buyGeode('${t.id}')" ${locked || noGold ? 'disabled' : ''}>
+        ${locked ? 'Lv ' + unlvl : ic('mountain') + ' ' + fmt(cost)}
+      </button>
+    </div>`;
+  }
+
   document.getElementById('middle-content').innerHTML = html;
 }
 
 function renderPetsPanel() {
-  let html = `<div class="pets-intro">Pets orbit your vein and grant powerful bonuses. Unlock them with 💜 Gems earned from geodes.</div>`;
+  let html = `<div class="pets-intro">Pets orbit your vein and grant powerful bonuses. Unlock with ${ic('diamond')} Gems, then feed minerals to level them up!</div>`;
+
   for (const pet of PETS) {
-    const owned  = gs.pets[pet.id];
+    const p      = gs.pets[pet.id];
+    const owned  = p.owned;
     const locked = !owned && gs.level < pet.unlockLvl;
-    const noGems = !owned && !locked && gs.gems < pet.cost;
+    const noGems = !owned && !locked && gs.gems < pet.gemCost;
     const cls    = 'pet-card' + (owned ? ' owned' : locked ? ' locked' : '');
     let statusHtml = '', btnHtml = '';
+
     if (owned) {
-      statusHtml = `<span class="pc-status ok">✅ Active</span>`;
+      statusHtml = `<span class="pc-status ok">${ic('circle-check')} Active</span>`;
+      const maxLvl = p.level >= pet.maxLvl;
+      const feedCost = petFeedCost(pet);
+      const canFeed = !maxLvl && gs.minerals >= feedCost;
+      btnHtml = maxLvl
+        ? `<span class="pc-status" style="color:var(--accent)">${ic('star')} MAX Lv</span>`
+        : `<button class="pet-feed-btn" onclick="feedPet('${pet.id}')" ${canFeed ? '' : 'disabled'}>
+            ${ic('bowl-food')} Feed ${fmt(feedCost)}
+          </button>`;
     } else if (locked) {
-      statusHtml = `<span class="pc-status dim">🔒 Requires Lv ${pet.unlockLvl}</span>`;
+      statusHtml = `<span class="pc-status dim">${ic('lock')} Requires Lv ${pet.unlockLvl}</span>`;
     } else {
-      if (noGems) statusHtml = `<span class="pc-status bad">Need ${pet.cost} 💜</span>`;
+      if (noGems) statusHtml = `<span class="pc-status bad">Need ${pet.gemCost} ${ic('diamond')}</span>`;
       btnHtml = `<button class="pet-unlock-btn" onclick="unlockPet('${pet.id}')" ${noGems ? 'disabled' : ''}>
-        💜 ${pet.cost} Gems
+        ${ic('diamond')} ${pet.gemCost} Gems
       </button>`;
     }
+
     html += `<div class="${cls}">
-      <span class="pc-icon">${pet.icon}</span>
+      <span class="pc-icon" style="color:${owned ? 'var(--purple)' : 'var(--muted)'}">${ic(pet.icon)}</span>
       <div class="pc-info">
         <div class="pc-name">${pet.name}</div>
         <div class="pc-desc">${pet.desc}</div>
+        ${owned ? `<div class="pc-bonus">${pet.bonusDesc(p.level)}</div>` : ''}
+        ${owned ? `<div class="pc-lvl">${ic('star')} Level ${p.level} / ${pet.maxLvl}</div>` : ''}
         <div class="pc-footer">${statusHtml}${btnHtml}</div>
       </div>
     </div>`;
@@ -1282,30 +1618,45 @@ function renderPetsPanel() {
   document.getElementById('middle-content').innerHTML = html;
 }
 
-function renderProspector() {
-  const tiers = [
-    { id:'common', emoji:'🪨', hint:'A solid geode for early miners.'         },
-    { id:'rare',   emoji:'💠', hint:'Better loot, more gem potential.'        },
-    { id:'epic',   emoji:'🔮', hint:'Legendary rewards for the bold.'         },
-  ];
-  let html = `<div class="prosp-intro">🏪 <strong>The Prospector's Shop</strong><br>Purchase geodes directly for minerals. Head to the Geodes tab to crack them open!</div>`;
-  for (const t of tiers) {
-    const cost   = GEODE_COSTS[t.id];
-    const unlvl  = GEODE_UNLOCK_LV[t.id];
-    const locked = gs.level < unlvl;
-    const noGold = !locked && gs.minerals < cost;
-    const tierCls = t.id === 'rare' ? 'rare' : t.id === 'epic' ? 'epic' : '';
-    html += `<div class="prosp-item ${tierCls}">
-      <span class="prosp-emoji">${t.emoji}</span>
-      <div class="prosp-info">
-        <div class="prosp-name">${t.id.charAt(0).toUpperCase() + t.id.slice(1)} Geode</div>
-        <div class="prosp-hint">${locked ? `🔒 Requires Level ${unlvl}` : t.hint}</div>
-      </div>
-      <button class="prosp-buy-btn" onclick="buyGeode('${t.id}')" ${locked || noGold ? 'disabled' : ''}>
-        ${locked ? `Lv ${unlvl}` : '🪨 ' + fmt(cost)}
-      </button>
+function renderGoals() {
+  let html = '';
+
+  // Core Shard summary
+  if (gs.coreShards > 0 || gs.totalPrestiges > 0) {
+    html += `<div style="background:var(--surface2); border:1px solid rgba(245,166,35,0.3); border-radius:10px; padding:12px; margin-bottom:14px;">
+      <div style="font-size:0.85rem; font-weight:700; color:var(--accent); margin-bottom:4px;">${ic('certificate')} ${gs.coreShards} Core Shard${gs.coreShards !== 1 ? 's' : ''}</div>
+      <div style="font-size:0.72rem; color:var(--muted);">+${gs.coreShards * 10}% all mining | ${gs.totalPrestiges} descent${gs.totalPrestiges !== 1 ? 's' : ''}</div>
     </div>`;
   }
+
+  html += `<div class="goals-intro">${ic('flag-checkered')} Complete milestones to earn ${ic('diamond')} Gem rewards!</div>`;
+
+  for (const ms of MILESTONES) {
+    const prog    = ms.progress();
+    const pct     = Math.min(100, prog / ms.target * 100);
+    const done    = prog >= ms.target;
+    const claimed = !!gs.milestones[ms.id];
+
+    let cls = 'milestone-card';
+    if (claimed) cls += ' claimed';
+    else if (done) cls += ' complete';
+
+    html += `<div class="${cls}">
+      <div class="ms-header">
+        <span class="ms-name">${ms.name}</span>
+        <span class="ms-reward">${ic('diamond')} +${ms.reward}</span>
+      </div>
+      <div class="ms-desc">${ms.desc}</div>
+      <div class="ms-bar-track"><div class="ms-bar-fill${done ? ' done' : ''}" style="width:${pct.toFixed(1)}%"></div></div>
+      <div class="ms-progress">
+        <span>${fmt(Math.min(prog, ms.target))} / ${fmt(ms.target)}</span>
+        ${claimed ? `<span style="color:var(--accent); font-weight:700">${ic('circle-check')} Claimed</span>`
+          : done ? `<button class="ms-claim-btn" onclick="claimMilestone('${ms.id}')">${ic('diamond')} Claim</button>`
+          : `<span>${pct.toFixed(0)}%</span>`}
+      </div>
+    </div>`;
+  }
+
   document.getElementById('middle-content').innerHTML = html;
 }
 
@@ -1319,18 +1670,23 @@ function renderStatsDetail() {
   const m      = computeMults();
   const totalG = gs.geodes.common + gs.geodes.rare + gs.geodes.epic;
   const artCnt = Object.values(gs.artifacts).filter(Boolean).length;
-  const petCnt = Object.values(gs.pets).filter(Boolean).length;
+  const petCnt = PETS.filter(p => gs.pets[p.id].owned).length;
+  const totalM = MINER_TYPES.reduce((s, t) => s + gs.miners[t.id], 0);
   const rows = [
     ['Level',          gs.level],
     ['Total Clicks',   fmt(gs.totalClicks)],
     ['Minerals/Click', fmt(clickYield())],
     ['Minerals/Sec',   fmt(passiveYield()) + '/s'],
-    ['Click Mult',     FORGE_UPGRADES.clickPower.multipliers[gs.forge.clickPower] + '×'],
-    ['Passive Mult',   FORGE_UPGRADES.passiveRate.multipliers[gs.forge.passiveRate] + '×'],
+    ['Click Mult',     forgeMult('clickPower').toFixed(1) + 'x'],
+    ['Passive Mult',   forgeMult('passiveRate').toFixed(1) + 'x'],
+    ['Total Miners',   totalM],
+    ['Miner Output',   fmt(totalMinerOutput()) + '/s'],
     ['Geodes Held',    totalG],
+    ['Geodes Cracked', fmt(gs.totalGeodesCracked)],
     ['Geode Chance',   Math.round(m.geodeChance * 100) + '%'],
     ['Artifacts',      artCnt + ' / ' + ARTIFACTS.length],
     ['Pets Active',    petCnt + ' / ' + PETS.length],
+    ['Core Shards',    gs.coreShards],
   ];
   document.getElementById('stats-detail').innerHTML = rows.map(([l, v]) =>
     `<div class="stat-row"><span class="sr-label">${l}</span><span class="sr-val">${v}</span></div>`
@@ -1340,10 +1696,10 @@ function renderStatsDetail() {
 function renderRelics() {
   document.getElementById('relics-grid').innerHTML = ARTIFACTS.map(art => {
     const owned = gs.artifacts[art.id];
-    const cls   = 'relic-card ' + art.rarity + (owned ? ' owned' : ' relic-unknown');
-    const col   = RARITY_COLOR[art.rarity];
+    const cls = 'relic-card ' + art.rarity + (owned ? ' owned' : ' relic-unknown');
+    const col = RARITY_COLORS[art.rarity];
     return `<div class="${cls}">
-      <span class="relic-icon">${owned ? art.icon : '❓'}</span>
+      <span class="relic-icon" style="color:${owned ? col : 'var(--muted)'}">${owned ? ic(art.icon) : ic('circle-question')}</span>
       <div class="relic-info">
         <div class="relic-name">${owned ? art.name : '???'}</div>
         <div class="relic-rarity" style="color:${col}">${art.rarity}</div>
@@ -1356,18 +1712,18 @@ function renderRelics() {
 function renderDiscoveryLog() {
   const list = document.getElementById('log-list');
   if (!gs.log.length) {
-    list.innerHTML = '<div style="font-size:0.74rem;color:var(--muted);text-align:center;padding:18px">No discoveries yet.<br>Click the Vein!</div>';
+    list.innerHTML = '<div style="font-size:0.74rem;color:var(--muted);text-align:center;padding:18px">No discoveries yet. Click the Vein!</div>';
     return;
   }
   list.innerHTML = gs.log.map(e => {
-    const col = RARITY_COLOR[e.rarity] || '#aaa';
+    const col = RARITY_COLORS[e.rarity] || '#aaa';
     let rw = '';
-    if (e.minerals > 0) rw += '+' + fmt(e.minerals) + ' 🪨';
-    if (e.gems > 0)     rw += (rw ? ' ' : '') + '+' + e.gems + ' 💜';
-    if (!rw)            rw = '✨ Artifact!';
+    if (e.minerals > 0) rw += '+' + fmt(e.minerals);
+    if (e.gems > 0) rw += (rw ? ' ' : '') + '+' + e.gems + ' gems';
+    if (!rw) rw = 'Artifact!';
     return `<div class="log-entry ${e.rarity}">
       <div class="log-left">
-        <span class="log-icon">${e.icon}</span>
+        <span class="log-icon" style="color:${col}">${ic(e.icon || 'mountain')}</span>
         <span class="log-name" style="color:${col}">${e.name}</span>
       </div>
       <div class="log-rewards">${rw}</div>
@@ -1376,76 +1732,68 @@ function renderDiscoveryLog() {
 }
 
 function renderAll()   { renderLeft(); renderMiddle(); renderRight(); }
-function renderStats() { renderLeft(); }   // alias used by tick
+function renderStats() { renderLeft(); }
 
 // ═══════════════════════════════════════════════════════════════════
-//  TICK LOOP  (runs every 100 ms)
+//  TICK (100ms)
 // ═══════════════════════════════════════════════════════════════════
-
 function tick() {
   const now = Date.now();
-  const dt  = Math.min((now - lastTick) / 1000, 5);  // cap to avoid huge offline jumps
+  const dt  = Math.min((now - lastTick) / 1000, 5);
   lastTick  = now;
 
   gs.minerals += passiveYield() * dt;
 
   xpAccum += xpPerSec() * dt;
   if (xpAccum >= 1) {
-    const w  = Math.floor(xpAccum);
+    const w = Math.floor(xpAccum);
     xpAccum -= w;
     addXP(w);
   }
 
-  // Ancient Compass: auto-spawn 1 Common Geode every 5 minutes
+  // Ancient Compass: auto-spawn 1 Common Geode every 5 min
   if (gs.artifacts.ancientCompass && now - gs.lastGeodeSpawn >= 300000) {
     gs.geodes.common++;
     gs.lastGeodeSpawn = now;
-    spawnFloat(window.innerWidth / 2, window.innerHeight / 2, '🧭 Geode spawned!', '#f5a623');
+    spawnFloat(window.innerWidth / 2, window.innerHeight / 2, 'Geode spawned!', '#f5a623');
     renderRight();
   }
 
   renderStats();
 }
-
 setInterval(tick, 100);
 
 // ═══════════════════════════════════════════════════════════════════
 //  SAVE / LOAD
 // ═══════════════════════════════════════════════════════════════════
-
 function saveGame() {
   gs.lastSave = Date.now();
   localStorage.setItem(SAVE_KEY, JSON.stringify(gs));
   const ind = document.getElementById('save-indicator');
-  ind.textContent = '💾 Saved!';
-  setTimeout(() => { ind.textContent = '💾 Auto-saves'; }, 1500);
+  ind.innerHTML = ic('floppy-disk') + ' Saved!';
+  setTimeout(() => { ind.innerHTML = ic('floppy-disk') + ' Auto-saves'; }, 1500);
 }
 
-// Convert the old treasure_hunter save format to the new Mineral Depths format
 function migrateOldSave(saved) {
   gs.minerals    = saved.coins || 0;
-  gs.xp          = saved.xp   || 0;
+  gs.xp          = saved.xp || 0;
   gs.level       = saved.level || 1;
   gs.totalClicks = saved.totalDigs || 0;
   gs.log         = (saved.log || []).map(e => ({ ...e, source:'vein', minerals: e.coins || 0, gems: 0 }));
   gs.lastSave    = saved.lastSave || Date.now();
 
-  // Map old shovel → forge.clickPower
   const shovelMap = { wooden:0, iron:1, steel:2, diamond:3, ancient:4 };
   gs.forge.clickPower = shovelMap[saved.currentShovel] || 0;
 
-  // Map total miners owned → forge.passiveRate (rough approximation, capped at 4)
-  const minerIds  = ['apprentice','skilled','expert','master','legendary'];
-  let totalMiners = 0;
-  for (const id of minerIds) totalMiners += (saved.miners?.[id] || 0);
-  gs.forge.passiveRate = Math.min(4, Math.floor(totalMiners / 2));
+  const minerIds = ['apprentice','skilled','expert','master','legendary'];
+  let totalM = 0;
+  for (const id of minerIds) totalM += (saved.miners?.[id] || 0);
+  gs.forge.passiveRate = Math.min(4, Math.floor(totalM / 2));
 
-  // Map old accessories to artifacts where names align
   if (saved.accessories?.lucky)   gs.artifacts.luckyCoin      = true;
   if (saved.accessories?.compass) gs.artifacts.ancientCompass = true;
 
-  showNotice('🔄 Save migrated to Mineral Depths! Welcome back, Level ' + gs.level +
-             ' ' + (LEVEL_TITLES[gs.level - 1] || 'Miner') + '!');
+  showNotice('Save migrated to Mineral Depths! Welcome back, Level ' + gs.level);
   saveGame();
 }
 
@@ -1455,29 +1803,40 @@ function loadGame() {
   try {
     const saved = JSON.parse(raw);
 
-    // Old format has 'coins'; new format has 'minerals'
+    // Very old format (coins-based)
     if (saved.coins !== undefined && saved.minerals === undefined) {
       migrateOldSave(saved);
       return;
     }
 
-    // New format — merge saved fields onto gs defaults
-    const scalars = ['minerals','gems','xp','level','totalClicks','lastSave','lastGeodeSpawn'];
-    const objects  = ['geodes','forge','pets','artifacts'];
+    // Merge saved fields
+    const scalars = ['minerals','gems','xp','level','totalClicks','totalGeodesCracked',
+                     'lastSave','lastGeodeSpawn','coreShards','totalPrestiges'];
+    const objects = ['geodes','forge','artifacts','miners','milestones'];
     for (const k of scalars) if (saved[k] !== undefined) gs[k] = saved[k];
     for (const k of objects) if (saved[k] && typeof saved[k] === 'object')
       gs[k] = Object.assign({}, gs[k], saved[k]);
     if (Array.isArray(saved.log)) gs.log = saved.log;
 
-    // Credit offline passive earnings (cap at 8 hours)
+    // Pet migration: old format has booleans, new has {owned, level}
+    if (saved.pets) {
+      for (const id of ['autoMiner','treasureHound','crystalFairy']) {
+        if (typeof saved.pets[id] === 'boolean') {
+          gs.pets[id] = { owned: saved.pets[id], level: 0 };
+        } else if (saved.pets[id] && typeof saved.pets[id] === 'object') {
+          gs.pets[id] = Object.assign({}, gs.pets[id], saved.pets[id]);
+        }
+      }
+    }
+
+    // Credit offline passive earnings (cap 8h)
     const offSec  = Math.min((Date.now() - gs.lastSave) / 1000, 8 * 3600);
     const passive = passiveYield();
     if (offSec > 10 && passive > 0) {
       gs.minerals += passive * offSec;
-      const xpEarned = Math.floor(xpPerSec() * offSec);
-      if (xpEarned >= 1) addXP(xpEarned);
-      showNotice('⛏️ You earned ' + fmt(passive * offSec) + ' minerals while away! ('
-                 + Math.floor(offSec / 60) + ' min)');
+      const xpE = Math.floor(xpPerSec() * offSec);
+      if (xpE >= 1) addXP(xpE);
+      showNotice('You earned ' + fmt(passive * offSec) + ' minerals while away! (' + Math.floor(offSec / 60) + ' min)');
     }
   } catch (e) {
     console.warn('Save load error:', e);
@@ -1501,15 +1860,9 @@ setInterval(saveGame, 10000);
 window.addEventListener('beforeunload', saveGame);
 
 // ═══════════════════════════════════════════════════════════════════
-//  AMBIENT SPARKLES
-// ═══════════════════════════════════════════════════════════════════
-
-setInterval(spawnAmbientSparkle, 180);
-
-// ═══════════════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════════════
-
+audio.init();
 loadGame();
 renderAll();
 </script>
